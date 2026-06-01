@@ -10,15 +10,14 @@ https://creativecommons.org/publicdomain/zero/1.0/
 
 #include <print>
 #include <string>
+#include <vector>
 
 #include "raylib.h"
 #include "rcamera.h"
 
+#include "Entity.h"
 #include "Player.h"
 #include "resource_dir.h" // utility header for SearchAndSetResourceDir
-
-void
-handleMouseCallback ();
 
 int
 main ()
@@ -38,13 +37,21 @@ main ()
 
   HideCursor ();
   DisableCursor ();
+  Model model = LoadModelFromMesh (GenMeshCube (5.0f, 5.0f, 5.0f));
+  Model plane = LoadModelFromMesh (GenMeshPlane (20.0f, 20.0f, 4, 3));
 
-  Player* player = new Player (Vector3 { 10.0f, 25.0f, 0.0f });
+  plane.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture =
+    LoadTexture ("texture_13.png");
 
-  Model model = LoadModelFromMesh (GenMeshCube (
-    20.0f,
-    20.0f,
-    20.0f)); // LoadModelFromMesh (GenMeshPlane (10.0f, 10.0f, 4, 3));
+  Entity* ent = new Entity { model, Vector3 { 0.0f, 0.0f, 0.0f } };
+  Entity* pln = new Entity { plane, Vector3 { 0.0f, 0.0f, 0.0f } };
+
+  World world;
+  world.push_back (ent);
+  world.push_back (pln);
+
+  Player* player = new Player (Vector3 { 10.0f, 2.0f, 10.0f }, world);
+  // LoadModelFromMesh (GenMeshPlane (10.0f, 10.0f, 4, 3));
 
   SetTargetFPS (60);
 
@@ -74,8 +81,9 @@ main ()
 
       // draw some text using the default font
 
-      DrawModel (model, Vector3 { 0.0f, 0.0f, 0.0f }, 1.0f, BLACK);
-
+      // DrawModel (model, Vector3 { 0.0f, 0.0f, 0.0f }, 1.0f, BLACK);
+      ent->DrawEntity ();
+      pln->DrawEntity ();
       // draw our texture to the screen
       DrawTexture (wabbit, 400, 200, WHITE);
 
@@ -100,6 +108,15 @@ main ()
                           player->velocity.z),
               0,
               20,
+              15,
+              BLACK);
+
+    DrawText (TextFormat ("camera position: (%06.3f, %06.3f, %06.3f)",
+                          player->camera.position.x,
+                          player->camera.position.y,
+                          player->camera.position.z),
+              0,
+              35,
               15,
               BLACK);
 
