@@ -15,6 +15,6 @@ struct Entity
   }
 };
 
-using World = std ::vector<Entity*>;
+typedef std ::vector<Entity*> World;
 
 #endif

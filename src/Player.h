@@ -2,10 +2,10 @@
 #define PLAYER_H
 
 #include "Entity.h"
+
 #include <print>
 #include <raylib.h>
 #include <raymath.h>
-#include <rcamera.h>
 #include <vector>
 
 using std::println;
@@ -32,22 +32,16 @@ public:
                         .projection = CAMERA_PERSPECTIVE };
 
     pitch = -0.6; // mouseDelta y
-
-    yaw = -2.45; // mouseDelta x
+    yaw = -2.45;  // mouseDelta x
 
     direction.x = cos (yaw) * cos (pitch);
-
     direction.y = sin (pitch);
-
     direction.z = sin (yaw) * cos (pitch);
 
     cameraFront = Vector3Normalize (direction);
-
     cameraRight =
       Vector3Normalize (Vector3CrossProduct (camera.up, cameraFront));
-
     cameraUp = Vector3CrossProduct (direction, cameraRight);
-
     camera.target = Vector3Add (camera.position, cameraFront);
   }
 
@@ -62,14 +56,10 @@ public:
       position = camera.position;
       return;
     }
+
     handlePhysics ();
-    // println ("position ({},{},{})", position.x, position.y, position.z);
-
     Vector3 newPos = Vector3Add (position, velocity);
-    // println ("new pos ({},{},{})", newPos.x, newPos.y, newPos.z);
     position = newPos;
-
-    // camPos.y += headDist;
     handleCamera ();
   }
 
@@ -108,8 +98,8 @@ private:
     }
     else
     {
-      velocity.x = Lerp (velocity.x, 0.001f, 0.1f);
-      velocity.z = Lerp (velocity.z, 0.001f, 0.1f);
+      velocity.x = 0.0f; // Lerp (velocity.x, 0.001f, 0.1f);
+      velocity.z = 0.0f; // Lerp (velocity.z, 0.001f, 0.1f);
     }
 
     if (!isOnGround () && position.y > 0)

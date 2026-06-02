@@ -17,7 +17,8 @@ https://creativecommons.org/publicdomain/zero/1.0/
 
 #include "Entity.h"
 #include "Player.h"
-#include "resource_dir.h" // utility header for SearchAndSetResourceDir
+#include "Util.h"
+#include "resource_dir.h"
 
 int
 main ()
@@ -37,105 +38,82 @@ main ()
 
   HideCursor ();
   DisableCursor ();
-  Model model = LoadModelFromMesh (GenMeshCube (5.0f, 5.0f, 5.0f));
-  // Model plane = LoadModelFromMesh (GenMeshPlane (1.0f, 1.0f, 4, 3));
 
-  // Texture2D tex = LoadTexture ("texture_13.png");
+  Texture2D tx = LoadTexture ("texture_13.png");
 
-  // plane.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = tex;
+  Image noise = GenImagePerlinNoise (20, 20, 0.0, 0.0, 1.0f);
+  Texture2D noiseTex = LoadTextureFromImage (noise);
 
-  // float tiling[2] = { 1.0f, 1.0f };
+  std::vector<Entity> ents;
 
-  // Shader shad = LoadShader (0, TextFormat ("../src/tiling.frag", 460));
-  // SetTextureWrap (tex, TEXTURE_WRAP_REPEAT);
-  // SetShaderValue (
-  //   shad, GetShaderLocation (shad, "tiling"), tiling, SHADER_UNIFORM_VEC2);
-  // plane.materials[0].shader = shad;
+  Color* pixel = LoadImageColors (noise);
 
-  Entity* ent = new Entity { model, Vector3 { 0.0f, 0.0f, 0.0f } };
+  int height = noise.height;
+  int width = noise.width;
+
+  for (int x = 0; x < width; ++x)
+  {
+    for (int z = 0; z < height; ++z)
+    {
+      float normalizedHeight = GetGrayScale (pixel[z * width + x]);
+      int yHeight = lround (normalizedHeight * 0.1f);
+
+      for (int y = 0; y < yHeight; ++y)
+      {
+
+        Entity en =
+          Entity { .model = LoadModelFromMesh (GenMeshPlane (1.0f, 1.0f, 1, 1)),
+                   .Position =
+                     Vector3 { (float) x * 2, (float) y * 2, (float) z * 2 } };
+
+        en.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+        ents.push_back (en);
+      }
+    }
+  }
   // Entity* pln = new Entity { plane, Vector3 { 0.0f, 0.0f, 0.0f } };
 
   World world;
-  world.push_back (ent);
-  // world.push_back (pln);
 
   Player* player = new Player (Vector3 { 10.0f, 2.0f, 10.0f }, world);
-  // LoadModelFromMesh (GenMeshPlane (10.0f, 10.0f, 4, 3));
 
   SetTargetFPS (60);
 
   // game loop
-  while (!WindowShouldClose ()) // run the loop until the user presses ESCAPE or
-                                // presses the Close button on the window
+  while (!WindowShouldClose ())
   {
-    // UpdateCamera(&camera,CAMERA_FIRST_PERSON);
     player->update ();
-
-    // UpdateCameraPro (
-    //   &camera,
-    //   Vector3 { 0.0, 0.0, 0.0 },
-    //   Vector3 { GetMouseDelta ().x * 0.05f, GetMouseDelta ().y * 0.05f, 0.0f
-    //   }, GetMouseWheelMove () * 2.0f);
 
     //  drawing
     BeginDrawing ();
 
+    // Setup the back buffer for drawing (clear color and depth buffers)
+    ClearBackground (SKYBLUE);
     {
       BeginMode3D (player->camera);
 
-      // Setup the back buffer for drawing (clear color and depth buffers)
-      ClearBackground (SKYBLUE);
-
       DrawGrid (32, 1.0f);
 
-      // draw some text using the default font
-
-      // DrawModel (model, Vector3 { 0.0f, 0.0f, 0.0f }, 1.0f, BLACK);
-      // ent->DrawEntity ();
-      // pln->DrawEntity ();
-      // draw our texture to the screen
-      DrawTexture (wabbit, 400, 200, WHITE);
+      for (Entity e : ents)
+      {
+        e.DrawEntity ();
+      }
 
       EndMode3D ();
     }
 
-    // end the frame and get ready for the next one  (display frame, poll input,
-    // etc...)
+    DrawTexture (noiseTex, 0, 0, WHITE);
 
-    DrawText (TextFormat ("Position: (%.1f, %.1f, %.1f)",
-                          player->position.x,
-                          player->position.y,
-                          player->position.z),
-              0,
-              0,
-              15,
-              BLACK);
+    DrawVector3 (player->position, { 0.0f, 0.0f }, "Position");
 
-    DrawText (TextFormat ("Velocity: (%06.3f, %06.3f, %06.3f)",
-                          player->velocity.x,
-                          player->velocity.y,
-                          player->velocity.z),
-              0,
-              20,
-              15,
-              BLACK);
+    DrawVector3 (player->velocity, { 0.0f, 15.0f }, "Velocity");
 
-    DrawText (TextFormat ("camera position: (%06.3f, %06.3f, %06.3f)",
-                          player->camera.position.x,
-                          player->camera.position.y,
-                          player->camera.position.z),
-              0,
-              35,
-              15,
-              BLACK);
+    DrawVector3 (player->camera.position, { 0.0f, 30.0f }, "Camera Pos");
 
     EndDrawing ();
   }
-
-  // cleanup
-  // unload our texture so it can be cleaned up
-  UnloadTexture (wabbit);
-
+  UnloadImage (noise);
+  UnloadTexture (noiseTex);
   // destroy the window and cleanup the OpenGL context
   CloseWindow ();
   return 0;
