@@ -15,7 +15,7 @@ class Player
   // vars
 public:
   Camera3D camera;
-  Vector3 position;
+  Vector3 position = { 0 };
   Vector3 velocity = { 0 };
 
   // constructors and funcs
@@ -24,11 +24,31 @@ public:
       : position (pos),
         world (w)
   {
+    pos.y += headDist;
     camera = Camera3D { .position = pos,
                         .target = Vector3 { 0.0f, 0.0f, 0.0f },
                         .up = Vector3 { 0.0f, 1.0f, 0.0f },
                         .fovy = 90.0f,
                         .projection = CAMERA_PERSPECTIVE };
+
+    pitch = -0.6; // mouseDelta y
+
+    yaw = -2.45; // mouseDelta x
+
+    direction.x = cos (yaw) * cos (pitch);
+
+    direction.y = sin (pitch);
+
+    direction.z = sin (yaw) * cos (pitch);
+
+    cameraFront = Vector3Normalize (direction);
+
+    cameraRight =
+      Vector3Normalize (Vector3CrossProduct (camera.up, cameraFront));
+
+    cameraUp = Vector3CrossProduct (direction, cameraRight);
+
+    camera.target = Vector3Add (camera.position, cameraFront);
   }
 
   void
@@ -36,57 +56,137 @@ public:
   {
 
     handleInput ();
+    if (free)
+    {
+      UpdateCamera (&camera, CAMERA_FREE);
+      position = camera.position;
+      return;
+    }
+    handlePhysics ();
     // println ("position ({},{},{})", position.x, position.y, position.z);
+
     Vector3 newPos = Vector3Add (position, velocity);
     // println ("new pos ({},{},{})", newPos.x, newPos.y, newPos.z);
-    Vector3 camPos = Vector3Subtract (position, newPos);
-    // println ("camPos ({},{},{})", camPos.x, camPos.y, camPos.z);
     position = newPos;
 
-    handleCamera (camPos);
+    // camPos.y += headDist;
+    handleCamera ();
   }
 
 private:
   float speed = 10.0f;
+  float headDist = 4.0f;
+  float pitch, yaw;
+
   World world;
+
+  Vector3 direction;
+
+  Vector3 cameraFront;
+
+  Vector3 cameraRight;
+
+  Vector3 cameraUp;
+
+  bool free = false;
 
 private:
   void
-  handleInput ()
+  handlePhysics ()
   {
 
     Vector2 dir = Vector2 {
       (float) (IsKeyDown (KEY_S) - IsKeyDown (KEY_W)),
       (float) (IsKeyDown (KEY_A) - IsKeyDown (KEY_D)),
     };
+    Vector3 newDir = handleDir (dir);
 
     if (dir.x != 0 || dir.y != 0)
     {
-      velocity.x = dir.x * speed * GetFrameTime ();
-      velocity.z = dir.y * speed * GetFrameTime ();
+      velocity.x = newDir.x * speed * GetFrameTime ();
+      velocity.z = newDir.z * speed * GetFrameTime ();
     }
     else
     {
-      velocity = Vector3Lerp (velocity, Vector3Zero (), 0.1f);
+      velocity.x = Lerp (velocity.x, 0.001f, 0.1f);
+      velocity.z = Lerp (velocity.z, 0.001f, 0.1f);
     }
 
-    // if (!isOnGround ())
-    //   velocity.z += 0.008f;
-
+    if (!isOnGround () && position.y > 0)
+      velocity.y += -0.98 * GetFrameTime ();
+    if (position.y <= 0)
+    {
+      velocity.y = 0;
+    }
     if (IsKeyPressed (KEY_SPACE))
     {
-      velocity.y -= 0.1f;
+      velocity.y = 0.4f;
     }
   }
 
   void
-  handleCamera (Vector3 camPos)
+  handleCamera ()
   {
-    UpdateCameraPro (
-      &camera,
-      camPos,
-      Vector3 { GetMouseDelta ().x * 0.05f, GetMouseDelta ().y * 0.05f, 0.0f },
-      GetMouseWheelMove () * 2.0f);
+    // UpdateCameraPro (
+    //   &camera,
+    //   camPos,
+    //   Vector3 { GetMouseDelta ().x * 0.05f, GetMouseDelta ().y * 0.05f, 0.0f
+    //   }, GetMouseWheelMove () * 2.0f);
+    camera.position = position;
+    camera.position.y += headDist;
+
+    Vector2 mouseDelta = GetMouseDelta ();
+    mouseDelta.x *= 0.3;
+    mouseDelta.y *= 0.3;
+
+    yaw += mouseDelta.x * GetFrameTime ();
+
+    pitch += -mouseDelta.y * GetFrameTime ();
+
+    if (pitch > 1.5)
+      pitch = 1.5;
+    else if (pitch < -1.5)
+      pitch = -1.5;
+
+    direction.x = cos (yaw) * cos (pitch);
+
+    direction.y = sin (pitch);
+
+    direction.z = sin (yaw) * cos (pitch);
+
+    cameraFront = Vector3Normalize (direction);
+
+    cameraRight =
+      Vector3Normalize (Vector3CrossProduct (camera.up, cameraFront));
+
+    cameraUp = Vector3CrossProduct (direction, cameraRight);
+
+    camera.target = Vector3Add (camera.position, cameraFront);
+  }
+
+  Vector3
+  handleDir (Vector2 dir)
+  {
+
+    dir.x = -dir.x;
+    dir.y = dir.y;
+
+    Vector3 desiredDir = (Vector3) {
+      dir.y * cameraRight.x + dir.x * cameraFront.x,
+      0.0f,
+      dir.y * cameraRight.z + dir.x * cameraFront.z,
+    };
+
+    return desiredDir;
+  }
+
+  void
+  handleInput ()
+  {
+    if (IsKeyPressed (KEY_F1))
+    {
+      free = !free;
+    }
   }
 
   bool
@@ -94,7 +194,7 @@ private:
   {
     for (int i = 0; i < world.size (); ++i)
     {
-      if (true)
+      if (position.y <= 0)
       {
         return true;
       }

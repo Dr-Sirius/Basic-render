@@ -38,17 +38,26 @@ main ()
   HideCursor ();
   DisableCursor ();
   Model model = LoadModelFromMesh (GenMeshCube (5.0f, 5.0f, 5.0f));
-  Model plane = LoadModelFromMesh (GenMeshPlane (20.0f, 20.0f, 4, 3));
+  // Model plane = LoadModelFromMesh (GenMeshPlane (1.0f, 1.0f, 4, 3));
 
-  plane.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture =
-    LoadTexture ("texture_13.png");
+  // Texture2D tex = LoadTexture ("texture_13.png");
+
+  // plane.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = tex;
+
+  // float tiling[2] = { 1.0f, 1.0f };
+
+  // Shader shad = LoadShader (0, TextFormat ("../src/tiling.frag", 460));
+  // SetTextureWrap (tex, TEXTURE_WRAP_REPEAT);
+  // SetShaderValue (
+  //   shad, GetShaderLocation (shad, "tiling"), tiling, SHADER_UNIFORM_VEC2);
+  // plane.materials[0].shader = shad;
 
   Entity* ent = new Entity { model, Vector3 { 0.0f, 0.0f, 0.0f } };
-  Entity* pln = new Entity { plane, Vector3 { 0.0f, 0.0f, 0.0f } };
+  // Entity* pln = new Entity { plane, Vector3 { 0.0f, 0.0f, 0.0f } };
 
   World world;
   world.push_back (ent);
-  world.push_back (pln);
+  // world.push_back (pln);
 
   Player* player = new Player (Vector3 { 10.0f, 2.0f, 10.0f }, world);
   // LoadModelFromMesh (GenMeshPlane (10.0f, 10.0f, 4, 3));
@@ -82,8 +91,8 @@ main ()
       // draw some text using the default font
 
       // DrawModel (model, Vector3 { 0.0f, 0.0f, 0.0f }, 1.0f, BLACK);
-      ent->DrawEntity ();
-      pln->DrawEntity ();
+      // ent->DrawEntity ();
+      // pln->DrawEntity ();
       // draw our texture to the screen
       DrawTexture (wabbit, 400, 200, WHITE);
 

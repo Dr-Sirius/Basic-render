@@ -11,7 +11,7 @@ struct Entity
   void
   DrawEntity ()
   {
-    DrawModel (model, Position, 0.1f, WHITE);
+    DrawModel (model, Position, 2.0f, WHITE);
   }
 };
 
