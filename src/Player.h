@@ -20,9 +20,9 @@ public:
 
   // constructors and funcs
 public:
-  Player (Vector3 pos, World& w)
+  Player (Vector3 pos, std::vector<Block> b)
       : position (pos),
-        world (w)
+        blocks (b)
   {
     pos.y += headDist;
     camera = Camera3D { .position = pos,
@@ -63,12 +63,28 @@ public:
     handleCamera ();
   }
 
+  void
+  CheckBlockCol ()
+  {
+
+    Vector3 endPos = { position.x + (direction.x * distance),
+                       position.y * (direction.y + distance),
+                       position.z + (direction.z * distance) };
+    DrawCube (endPos, 1.0f, 1.0f, 1.0f, WHITE);
+
+    println ("Dir {}", Vector3String (direction));
+  }
+
 private:
   float speed = 10.0f;
   float headDist = 4.0f;
   float pitch, yaw;
+  float distance = 2.0f;
+
+  Ray ray = { 0 };
 
   World world;
+  std::vector<Block> blocks;
 
   Vector3 direction;
 
@@ -78,7 +94,7 @@ private:
 
   Vector3 cameraUp;
 
-  bool free = false;
+  bool free = true;
 
 private:
   void
@@ -122,16 +138,19 @@ private:
     //   camPos,
     //   Vector3 { GetMouseDelta ().x * 0.05f, GetMouseDelta ().y * 0.05f, 0.0f
     //   }, GetMouseWheelMove () * 2.0f);
+
     camera.position = position;
     camera.position.y += headDist;
 
+    float dt = GetFrameTime ();
+
     Vector2 mouseDelta = GetMouseDelta ();
-    mouseDelta.x *= 0.3;
-    mouseDelta.y *= 0.3;
+    // mouseDelta.x *= 0.3;
+    // mouseDelta.y *= 0.3;
 
-    yaw += mouseDelta.x * GetFrameTime ();
+    yaw += mouseDelta.x * dt;
 
-    pitch += -mouseDelta.y * GetFrameTime ();
+    pitch += -mouseDelta.y * dt;
 
     if (pitch > 1.5)
       pitch = 1.5;
@@ -176,6 +195,25 @@ private:
     if (IsKeyPressed (KEY_F1))
     {
       free = !free;
+    }
+
+    if (IsKeyPressed (KEY_F2))
+    {
+      position = Vector3Zero ();
+      if (free)
+      {
+        camera.position = position;
+      }
+    }
+
+    if (IsKeyPressed (KEY_UP))
+    {
+      distance += 1;
+    }
+
+    if (IsKeyPressed (KEY_DOWN))
+    {
+      distance -= 1;
     }
   }
 

@@ -24,79 +24,21 @@ main ()
   HideCursor ();
   DisableCursor ();
 
-  Image noise = GenImagePerlinNoise (128, 128, 0.0, 0.0, 1.0f);
+  Image noise = GenImagePerlinNoise (24, 24, 0.0, 0.0, 1.0f);
   Texture2D noiseTex = LoadTextureFromImage (noise);
 
-  std::vector<Block> ents (33296);
+  std::vector<Block>* ents = Build (noise);
 
-  // for (int x = 0; x < 16; ++x)
-  // {
-  //   for (int z = 0; z < 16; ++z)
-  //   {
-  //     for (int y = 0; y < 32; ++y)
-  //     {
-  //       Block en =
-  //         Block { .face1 = NULL,
-  //                 .face2 = NULL,
-  //                 .face3 = NULL,
-  //                 .face4 = NULL,
-  //                 .face5 = NULL,
-  //                 .face6 = NULL,
-  //                 .position = Vector3 { (float) x, (float) y, (float) z },
-  //                 .type = BLOCK_TYPE::GROUND };
+  SetAndDetermineRender (*ents);
 
-  //       // en.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
-  //       ents[PointToIndex (en.position)] = en;
-
-  //       // ents.push_back (en);
-  //     }
-  //   }
-  // }
-
-  Color* pixel = LoadImageColors (noise);
-
-  int height = noise.height;
-  int width = noise.width;
-
-  for (int x = 0; x < width; ++x)
-  {
-    for (int z = 0; z < height; ++z)
-    {
-      float normalizedHeight = GetGrayScale (pixel[z * width + x]);
-      int yHeight = lround (normalizedHeight * 0.1f);
-      println ("Y SIZE {}", yHeight);
-      for (int y = 0; y < yHeight; ++y)
-      {
-
-        Block en =
-          Block { .face1 = NULL,
-                  .face2 = NULL,
-                  .face3 = NULL,
-                  .face4 = NULL,
-                  .face5 = NULL,
-                  .face6 = NULL,
-                  .position = Vector3 { (float) x, (float) y, (float) z },
-                  .type = BLOCK_TYPE::GROUND };
-
-        // en.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
-        ents[PointToIndex (en.position)] = en;
-      }
-    }
-  }
-
-  SetAndDetermineRender (ents);
-
-  // Entity* pln = new Entity { plane, Vector3 { 0.0f, 0.0f, 0.0f } };
-
-  // printAll (ents);
-
-  World world;
-
-  Player* player = new Player (Vector3 { 10.0f, 2.0f, 10.0f }, world);
+  Player* player = new Player (Vector3 { 10.0f, 2.0f, 10.0f }, *ents);
 
   // SetTargetFPS (60);
 
-  Model test = LoadModelFromMesh (GenMeshPlane (1.0f, 1.0f, 1, 1));
+  Model test = LoadModelFromMesh (GenMeshCube (2.0f, 2.0f, 2.0f));
+
+  player->position = Vector3Zero ();
+  player->camera.position = Vector3Zero ();
 
   // game loop
   while (!WindowShouldClose ())
@@ -112,55 +54,15 @@ main ()
       BeginMode3D (player->camera);
 
       DrawGrid (32, 1.0f);
+      player->CheckBlockCol ();
 
-      for (Block& e : ents)
+      for (Block& e : *ents)
       {
         if (!e.render)
           continue;
         e.DrawBlock ();
+        e.Update ();
       }
-      // DrawModelEx (test,
-      //              { 0.0, 0.5, 0.0 },
-      //              { 1.0, 0.0, 0.0 },
-      //              180,
-      //              Vector3One (),
-      //              RED); // negy
-
-      // DrawModelEx (test,
-      //              { 0.0, 1.5, 0.0 },
-      //              { 1.0, 0.0, 0.0 },
-      //              0,
-      //              Vector3One (),
-      //              WHITE); // posy
-
-      // DrawModelEx (test,
-      //              { 0.0, 1.0, 0.5 },
-      //              { 1.0, 0.0, 0.0 },
-      //              90,
-      //              Vector3One (),
-      //              GREEN); // posz
-
-      // DrawModelEx (test,
-      //              { 0.0, 1.0, -0.5 },
-      //              { 1.0, 0.0, 0.0 },
-      //              -90,
-      //              Vector3One (),
-      //              BLUE); // negz
-
-      // DrawModelEx (test,
-      //              { -0.5, 1.0, 0.0 },
-      //              { 0.0, 0.0, 1.0 },
-      //              90,
-      //              Vector3One (),
-      //              YELLOW); // negx
-
-      // DrawModelEx (test,
-      //              { 0.5, 1.0, 0.0 },
-      //              { 0.0, 0.0, 1.0 },
-      //              -90,
-      //              Vector3One (),
-      //              ORANGE); // posx
-      // //
 
       EndMode3D ();
     }
