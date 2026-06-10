@@ -63,15 +63,12 @@ struct Block
       face4.DrawFace ();
       face5.DrawFace ();
       face6.DrawFace ();
-      if (debug)
-      {
-        if (type == BLOCK_TYPE::GROUND)
-        {
-          DrawCubeWires (position, 1.0f, 1.0f, 1.0f, MAGENTA);
-          return;
-        }
-        DrawCubeWires (position, 1.0f, 1.0f, 1.0f, colliderCol);
-      }
+    }
+    if (debug)
+    {
+      if (!render)
+        colliderCol = YELLOW;
+      DrawCubeWires (position, 1.0f, 1.0f, 1.0f, colliderCol);
     }
     // DrawModel (model, position, 1.0f, WHITE);
   }
@@ -141,9 +138,9 @@ SetAndDetermineRender (std::vector<Block>& blocks)
   for (Block& b : blocks)
   {
 
+    b.render = false;
     if (b.type == BLOCK_TYPE::AIR)
     {
-      b.render = false;
       continue;
     }
 
@@ -153,7 +150,6 @@ SetAndDetermineRender (std::vector<Block>& blocks)
     b.face4.render = false;
     b.face5.render = false;
     b.face6.render = false;
-
     bool drawY = false;
     Vector3 bPos = b.position;
     if (getBlock ({ bPos.x, bPos.y + 1, bPos.z }, blocks) == BLOCK_TYPE::AIR)
@@ -164,6 +160,7 @@ SetAndDetermineRender (std::vector<Block>& blocks)
       b.face1.angle = 0.0f;
       b.face1.render = true;
       b.face1.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+      b.render = true;
       println ("BLOCK{}[FACE1DONE]", i);
     }
 
@@ -175,6 +172,7 @@ SetAndDetermineRender (std::vector<Block>& blocks)
       b.face2.angle = 180.0f;
       b.face2.render = true;
       b.face2.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+      b.render = true;
       println ("BLOCK{}[FACE2DONE]", i);
     }
     // drawY = true;
@@ -188,6 +186,7 @@ SetAndDetermineRender (std::vector<Block>& blocks)
       b.face3.angle = -90.0f;
       b.face3.render = true;
       b.face3.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+      b.render = true;
       println ("BLOCK{}[FACE3DONE]", i);
     }
 
@@ -199,6 +198,7 @@ SetAndDetermineRender (std::vector<Block>& blocks)
       b.face4.angle = 90.0f;
       b.face4.render = true;
       b.face4.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+      b.render = true;
       println ("BLOCK{}[FACE4DONE]", i);
     }
 
@@ -211,6 +211,7 @@ SetAndDetermineRender (std::vector<Block>& blocks)
       b.face5.angle = 90.0f;
       b.face5.render = true;
       b.face5.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+      b.render = true;
       println ("BLOCK{}[FACE5DONE]", i);
     }
 
@@ -222,9 +223,9 @@ SetAndDetermineRender (std::vector<Block>& blocks)
       b.face6.angle = -90.0f;
       b.face6.render = true;
       b.face6.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+      b.render = true;
       println ("BLOCK{}[FACE6DONE]", i);
     }
-    b.render = true;
     ++i;
 
     // println ("BLOCK END");
@@ -234,7 +235,7 @@ SetAndDetermineRender (std::vector<Block>& blocks)
 std::vector<Block>*
 Build (Image noise)
 {
-  std::vector<Block>* ents = new std::vector<Block> (14400);
+  std::vector<Block>* ents = new std::vector<Block> (16384);
 
   Color* pixel = LoadImageColors (noise);
 

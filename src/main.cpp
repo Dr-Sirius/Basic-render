@@ -24,7 +24,7 @@ main ()
   HideCursor ();
   DisableCursor ();
 
-  Image noise = GenImagePerlinNoise (24, 24, 0.0, 0.0, 1.0f);
+  Image noise = GenImagePerlinNoise (32, 32, 0.0, 0.0, 1.0f);
   Texture2D noiseTex = LoadTextureFromImage (noise);
 
   std::vector<Block>* ents = Build (noise);
@@ -54,12 +54,12 @@ main ()
       BeginMode3D (player->camera);
 
       DrawGrid (32, 1.0f);
-      player->CheckBlockCol ();
+      // player->CheckBlockCol ();
 
       for (Block& e : *ents)
       {
-        if (!e.render)
-          continue;
+        // if (!e.render)
+        //   continue;
         e.DrawBlock ();
         e.Update ();
       }
