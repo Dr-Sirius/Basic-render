@@ -5,6 +5,7 @@
 #include <print>
 #include <raylib.h>
 #include <raymath.h>
+#include <unordered_map>
 #include <vector>
 
 #include "Util.h"
@@ -100,6 +101,15 @@ getBlock (Vector3 vec, std::vector<Block> blocks)
     return BLOCK_TYPE::AIR;
   }
   return blocks[index].type;
+}
+
+BLOCK_TYPE
+getBlock2 (Vector3 vec, std::unordered_map<std::string, Block>& blocks)
+{
+  auto it = blocks.find (Vector3String (vec));
+  if (it == blocks.end ())
+    return BLOCK_TYPE::AIR;
+  return it->second.type;
 }
 
 std::string
@@ -231,6 +241,108 @@ SetAndDetermineRender (std::vector<Block>& blocks)
     // println ("BLOCK END");
   }
 }
+void
+SetAndDetermineRender2 (std::unordered_map<std::string, Block>& blocks)
+{
+  Texture2D tx = LoadTexture ("grass.png");
+  unsigned i = 0;
+  Model plane = LoadModelFromMesh (GenMeshPlane (1.0f, 1.0f, 1, 1));
+  for (auto& [_, b] : blocks)
+  {
+    Vector3 pos = b.position;
+
+    b.render = false;
+    if (b.type == BLOCK_TYPE::AIR)
+    {
+      continue;
+    }
+
+    b.face1.render = false;
+    b.face2.render = false;
+    b.face3.render = false;
+    b.face4.render = false;
+    b.face5.render = false;
+    b.face6.render = false;
+    bool drawY = false;
+    if (getBlock2 ({ pos.x, pos.y + 1, pos.z }, blocks) == BLOCK_TYPE::AIR)
+    {
+      b.face1.model = plane;
+      b.face1.position = { pos.x, pos.y + 0.5f, pos.z };
+      b.face1.rotation = { 1.0, 0.0, 0.0 };
+      b.face1.angle = 0.0f;
+      b.face1.render = true;
+      b.face1.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+      b.render = true;
+      println ("BLOCK{}[FACE1DONE]", i);
+    }
+
+    if (getBlock2 ({ pos.x, pos.y - 1, pos.z }, blocks) == BLOCK_TYPE::AIR)
+    {
+      b.face2.model = plane;
+      b.face2.position = { pos.x, pos.y - 0.5f, pos.z };
+      b.face2.rotation = { 1.0, 0.0, 0.0 };
+      b.face2.angle = 180.0f;
+      b.face2.render = true;
+      b.face2.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+      b.render = true;
+      println ("BLOCK{}[FACE2DONE]", i);
+    }
+    // drawY = true;
+
+    bool drawX = false;
+    if (getBlock2 ({ pos.x + 1, pos.y, pos.z }, blocks) == BLOCK_TYPE::AIR)
+    {
+      b.face3.model = plane;
+      b.face3.position = { pos.x + 0.5f, pos.y, pos.z };
+      b.face3.rotation = { 0.0, 0.0, 1.0 };
+      b.face3.angle = -90.0f;
+      b.face3.render = true;
+      b.face3.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+      b.render = true;
+      println ("BLOCK{}[FACE3DONE]", i);
+    }
+
+    if (getBlock2 ({ pos.x - 1, pos.y, pos.z }, blocks) == BLOCK_TYPE::AIR)
+    {
+      b.face4.model = plane;
+      b.face4.position = { pos.x - 0.5f, pos.y, pos.z };
+      b.face4.rotation = { 0.0, 0.0, 1.0 };
+      b.face4.angle = 90.0f;
+      b.face4.render = true;
+      b.face4.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+      b.render = true;
+      println ("BLOCK{}[FACE4DONE]", i);
+    }
+
+    bool drawZ = false;
+    if (getBlock2 ({ pos.x, pos.y, pos.z + 1 }, blocks) == BLOCK_TYPE::AIR)
+    {
+      b.face5.model = plane;
+      b.face5.position = { pos.x, pos.y, pos.z + 0.5f };
+      b.face5.rotation = { 1.0, 0.0, 0.0 };
+      b.face5.angle = 90.0f;
+      b.face5.render = true;
+      b.face5.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+      b.render = true;
+      println ("BLOCK{}[FACE5DONE]", i);
+    }
+
+    if (getBlock2 ({ pos.x, pos.y, pos.z - 1 }, blocks) == BLOCK_TYPE::AIR)
+    {
+      b.face6.model = plane;
+      b.face6.position = { pos.x, pos.y, pos.z - 0.5f };
+      b.face6.rotation = { 1.0, 0.0, 0.0 };
+      b.face6.angle = -90.0f;
+      b.face6.render = true;
+      b.face6.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+      b.render = true;
+      println ("BLOCK{}[FACE6DONE]", i);
+    }
+    ++i;
+
+    // println ("BLOCK END");
+  }
+}
 
 std::vector<Block>*
 Build (Image noise)
@@ -264,6 +376,44 @@ Build (Image noise)
 
         // en.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
         (*ents)[PointToIndex (en.position)] = en;
+      }
+    }
+  }
+  return ents;
+}
+
+std::unordered_map<std::string, Block>
+Build2 (Image noise)
+{
+  std::unordered_map<std::string, Block> ents;
+
+  Color* pixel = LoadImageColors (noise);
+
+  int height = noise.height;
+  int width = noise.width;
+
+  for (int x = 0; x < width; ++x)
+  {
+    for (int z = 0; z < height; ++z)
+    {
+      float normalizedHeight = GetGrayScale (pixel[z * width + x]);
+      int yHeight = lround (normalizedHeight * 0.05f);
+      println ("Y SIZE {}", yHeight);
+      for (int y = 0; y < yHeight; ++y)
+      {
+
+        Block en =
+          Block { .face1 = { 0 },
+                  .face2 = { 0 },
+                  .face3 = { 0 },
+                  .face4 = { 0 },
+                  .face5 = { 0 },
+                  .face6 = { 0 },
+                  .position = Vector3 { (float) x, (float) y, (float) z },
+                  .type = BLOCK_TYPE::GROUND };
+
+        // en.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+        ents.insert ({ Vector3String (en.position), en });
       }
     }
   }

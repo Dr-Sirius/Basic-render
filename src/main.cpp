@@ -27,11 +27,11 @@ main ()
   Image noise = GenImagePerlinNoise (32, 32, 0.0, 0.0, 1.0f);
   Texture2D noiseTex = LoadTextureFromImage (noise);
 
-  std::vector<Block>* ents = Build (noise);
+  std::unordered_map<std::string, Block> ents = Build2 (noise);
 
-  SetAndDetermineRender (*ents);
+  SetAndDetermineRender2 (ents);
 
-  Player* player = new Player (Vector3 { 10.0f, 2.0f, 10.0f }, *ents);
+  Player* player = new Player (Vector3 { 10.0f, 2.0f, 10.0f }, ents);
 
   // SetTargetFPS (60);
 
@@ -56,7 +56,7 @@ main ()
       DrawGrid (32, 1.0f);
       // player->CheckBlockCol ();
 
-      for (Block& e : *ents)
+      for (auto& [pos, e] : ents)
       {
         // if (!e.render)
         //   continue;

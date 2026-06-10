@@ -20,7 +20,7 @@ public:
 
   // constructors and funcs
 public:
-  Player (Vector3 pos, std::vector<Block> b)
+  Player (Vector3 pos, std::unordered_map<std::string, Block>& b)
       : position (pos),
         blocks (b)
   {
@@ -84,7 +84,7 @@ private:
   Ray ray = { 0 };
 
   World world;
-  std::vector<Block> blocks;
+  std::unordered_map<std::string, Block>& blocks;
 
   Vector3 direction;
 
