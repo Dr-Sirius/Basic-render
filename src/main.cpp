@@ -24,7 +24,7 @@ main ()
   HideCursor ();
   DisableCursor ();
 
-  Image noise = GenImagePerlinNoise (32, 32, 0.0, 0.0, 1.0f);
+  Image noise = GenImagePerlinNoise (128, 128, 0.0, 0.0, 1.0f);
   Texture2D noiseTex = LoadTextureFromImage (noise);
 
   std::unordered_map<std::string, Block> ents = Build2 (noise);

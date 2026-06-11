@@ -244,9 +244,11 @@ SetAndDetermineRender (std::vector<Block>& blocks)
 void
 SetAndDetermineRender2 (std::unordered_map<std::string, Block>& blocks)
 {
-  Texture2D tx = LoadTexture ("grass.png");
+  Texture2D tx = LoadTexture ("dirt.png");
+  Texture2D grass = LoadTexture ("grass.png");
   unsigned i = 0;
   Model plane = LoadModelFromMesh (GenMeshPlane (1.0f, 1.0f, 1, 1));
+  Model grassPlane = LoadModelFromMesh (GenMeshPlane (1.0f, 1.0f, 1, 1));
   for (auto& [_, b] : blocks)
   {
     Vector3 pos = b.position;
@@ -266,14 +268,14 @@ SetAndDetermineRender2 (std::unordered_map<std::string, Block>& blocks)
     bool drawY = false;
     if (getBlock2 ({ pos.x, pos.y + 1, pos.z }, blocks) == BLOCK_TYPE::AIR)
     {
-      b.face1.model = plane;
+      b.face1.model = grassPlane;
       b.face1.position = { pos.x, pos.y + 0.5f, pos.z };
       b.face1.rotation = { 1.0, 0.0, 0.0 };
       b.face1.angle = 0.0f;
       b.face1.render = true;
-      b.face1.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+      b.face1.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = grass;
       b.render = true;
-      println ("BLOCK{}[FACE1DONE]", i);
+      // println ("BLOCK{}[FACE1DONE]", i);
     }
 
     if (getBlock2 ({ pos.x, pos.y - 1, pos.z }, blocks) == BLOCK_TYPE::AIR)
@@ -285,7 +287,7 @@ SetAndDetermineRender2 (std::unordered_map<std::string, Block>& blocks)
       b.face2.render = true;
       b.face2.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
       b.render = true;
-      println ("BLOCK{}[FACE2DONE]", i);
+      // println ("BLOCK{}[FACE2DONE]", i);
     }
     // drawY = true;
 
@@ -299,7 +301,7 @@ SetAndDetermineRender2 (std::unordered_map<std::string, Block>& blocks)
       b.face3.render = true;
       b.face3.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
       b.render = true;
-      println ("BLOCK{}[FACE3DONE]", i);
+      // println ("BLOCK{}[FACE3DONE]", i);
     }
 
     if (getBlock2 ({ pos.x - 1, pos.y, pos.z }, blocks) == BLOCK_TYPE::AIR)
@@ -311,7 +313,7 @@ SetAndDetermineRender2 (std::unordered_map<std::string, Block>& blocks)
       b.face4.render = true;
       b.face4.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
       b.render = true;
-      println ("BLOCK{}[FACE4DONE]", i);
+      // println ("BLOCK{}[FACE4DONE]", i);
     }
 
     bool drawZ = false;
@@ -324,7 +326,7 @@ SetAndDetermineRender2 (std::unordered_map<std::string, Block>& blocks)
       b.face5.render = true;
       b.face5.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
       b.render = true;
-      println ("BLOCK{}[FACE5DONE]", i);
+      // println ("BLOCK{}[FACE5DONE]", i);
     }
 
     if (getBlock2 ({ pos.x, pos.y, pos.z - 1 }, blocks) == BLOCK_TYPE::AIR)
@@ -336,7 +338,7 @@ SetAndDetermineRender2 (std::unordered_map<std::string, Block>& blocks)
       b.face6.render = true;
       b.face6.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
       b.render = true;
-      println ("BLOCK{}[FACE6DONE]", i);
+      // println ("BLOCK{}[FACE6DONE]", i);
     }
     ++i;
 
@@ -397,8 +399,8 @@ Build2 (Image noise)
     for (int z = 0; z < height; ++z)
     {
       float normalizedHeight = GetGrayScale (pixel[z * width + x]);
-      int yHeight = lround (normalizedHeight * 0.05f);
-      println ("Y SIZE {}", yHeight);
+      int yHeight = lround (normalizedHeight * 0.3f);
+      // println ("Y SIZE {}", yHeight);
       for (int y = 0; y < yHeight; ++y)
       {
 
