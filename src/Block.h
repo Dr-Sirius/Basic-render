@@ -103,6 +103,10 @@ getBlock (Vector3 vec, std::vector<Block> blocks)
   return blocks[index].type;
 }
 
+/*
+Returns the BLOCK_TYPE of the block at positition Vector3 vec using the
+Vector3String representation
+*/
 BLOCK_TYPE
 getBlock2 (Vector3 vec, std::unordered_map<std::string, Block>& blocks)
 {
@@ -112,6 +116,9 @@ getBlock2 (Vector3 vec, std::unordered_map<std::string, Block>& blocks)
   return it->second.type;
 }
 
+/*
+Returns a string representation of a BLOCK_TYPE
+*/
 std::string
 blockString (BLOCK_TYPE block)
 {
@@ -125,18 +132,6 @@ blockString (BLOCK_TYPE block)
       return "AIR";
       break;
   }
-}
-
-void
-printAll (const std::vector<Block>& blocks)
-{
-  print ("[");
-  for (const Block& b : blocks)
-  {
-    print ("{}, ", blockString (b.type));
-  }
-  print ("]");
-  println ("");
 }
 
 void
@@ -241,14 +236,20 @@ SetAndDetermineRender (std::vector<Block>& blocks)
     // println ("BLOCK END");
   }
 }
+
+/*
+Iterates through the map of Blocks and determines the render elegibility.
+Elegible faces are set to their correct model and render is set true
+*/
 void
 SetAndDetermineRender2 (std::unordered_map<std::string, Block>& blocks)
 {
   Texture2D tx = LoadTexture ("dirt.png");
   Texture2D grass = LoadTexture ("grass.png");
-  unsigned i = 0;
+  // unsigned i = 0;
   Model plane = LoadModelFromMesh (GenMeshPlane (1.0f, 1.0f, 1, 1));
-  Model grassPlane = LoadModelFromMesh (GenMeshPlane (1.0f, 1.0f, 1, 1));
+  Model grassPlane = LoadModelFromMesh (GenMeshPlane (
+    1.0f, 1.0f, 1, 1)); // needed because meshes are pointers in models
   for (auto& [_, b] : blocks)
   {
     Vector3 pos = b.position;
@@ -265,7 +266,7 @@ SetAndDetermineRender2 (std::unordered_map<std::string, Block>& blocks)
     b.face4.render = false;
     b.face5.render = false;
     b.face6.render = false;
-    bool drawY = false;
+
     if (getBlock2 ({ pos.x, pos.y + 1, pos.z }, blocks) == BLOCK_TYPE::AIR)
     {
       b.face1.model = grassPlane;
@@ -289,9 +290,7 @@ SetAndDetermineRender2 (std::unordered_map<std::string, Block>& blocks)
       b.render = true;
       // println ("BLOCK{}[FACE2DONE]", i);
     }
-    // drawY = true;
 
-    bool drawX = false;
     if (getBlock2 ({ pos.x + 1, pos.y, pos.z }, blocks) == BLOCK_TYPE::AIR)
     {
       b.face3.model = plane;
@@ -316,7 +315,6 @@ SetAndDetermineRender2 (std::unordered_map<std::string, Block>& blocks)
       // println ("BLOCK{}[FACE4DONE]", i);
     }
 
-    bool drawZ = false;
     if (getBlock2 ({ pos.x, pos.y, pos.z + 1 }, blocks) == BLOCK_TYPE::AIR)
     {
       b.face5.model = plane;
@@ -340,7 +338,7 @@ SetAndDetermineRender2 (std::unordered_map<std::string, Block>& blocks)
       b.render = true;
       // println ("BLOCK{}[FACE6DONE]", i);
     }
-    ++i;
+    //++i;
 
     // println ("BLOCK END");
   }
@@ -383,7 +381,14 @@ Build (Image noise)
   }
   return ents;
 }
+/*
+Builds block terrain from the given noise and returns an unordered map of blocks
 
+The returned map is of type std::unordered_map<std::string, Block>
+
+The keys are string versions of the block's Vector3 position using the
+Vector3String function
+*/
 std::unordered_map<std::string, Block>
 Build2 (Image noise)
 {
