@@ -24,7 +24,7 @@ main ()
   HideCursor ();
   DisableCursor ();
 
-  Image noise = GenImagePerlinNoise (128, 128, 0.0, 0.0, 1.0f);
+  Image noise = GenImagePerlinNoise (80, 80, 0.0, 0.0, 1.0f);
   Texture2D noiseTex = LoadTextureFromImage (noise);
 
   std::unordered_map<std::string, Block> ents = Build2 (noise);
@@ -70,7 +70,7 @@ main ()
     DrawText (
       std::format ("FPS:{}", GetFPS ()).c_str (), 0.0f, 45.0f, 15, WHITE);
 
-    DrawTexture (noiseTex, 0, 0, WHITE);
+    DrawTexture (noiseTex, GetScreenWidth () - noiseTex.width, 0, WHITE);
 
     DrawVector3 (player->position, { 0.0f, 0.0f }, "Position");
 
