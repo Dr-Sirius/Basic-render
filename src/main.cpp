@@ -4,8 +4,6 @@
 
 #include "raylib.h"
 
-#include "rcamera.h"
-
 #include "Block.h"
 #include "Entity.h"
 #include "Player.h"
@@ -24,7 +22,7 @@ main ()
   HideCursor ();
   DisableCursor ();
 
-  Image noise = GenImagePerlinNoise (80, 80, 0.0, 0.0, 1.0f);
+  Image noise = GenImagePerlinNoise (4, 4, 0.0, 0.0, 1.0f);
   Texture2D noiseTex = LoadTextureFromImage (noise);
 
   std::unordered_map<std::string, Block> ents = Build2 (noise);
@@ -38,7 +36,6 @@ main ()
   Model test = LoadModelFromMesh (GenMeshCube (2.0f, 2.0f, 2.0f));
 
   player->position = Vector3Zero ();
-  player->camera.position = Vector3Zero ();
 
   // game loop
   while (!WindowShouldClose ())
@@ -51,7 +48,9 @@ main ()
     // Setup the back buffer for drawing (clear color and depth buffers)
     ClearBackground (BLACK);
     {
-      BeginMode3D (player->camera);
+      player->camera.BeginMode3D ();
+
+      player->CheckBlockCol ();
 
       DrawGrid (32, 1.0f);
       // player->CheckBlockCol ();
@@ -64,7 +63,7 @@ main ()
         e.Update ();
       }
 
-      EndMode3D ();
+      player->camera.EndMode3D ();
     }
 
     DrawText (
@@ -76,12 +75,24 @@ main ()
 
     DrawVector3 (player->velocity, { 0.0f, 15.0f }, "Velocity");
 
-    DrawVector3 (player->camera.position, { 0.0f, 30.0f }, "Camera Pos");
+    DrawVector3 (
+      player->camera.GetCameraPosition (), { 0.0f, 30.0f }, "Camera Pos");
 
     EndDrawing ();
   }
   UnloadImage (noise);
   UnloadTexture (noiseTex);
+
+  for (auto& [pos, e] : ents)
+  {
+    UnloadModel (e.face1.model);
+    UnloadModel (e.face2.model);
+    UnloadModel (e.face3.model);
+    UnloadModel (e.face4.model);
+    UnloadModel (e.face5.model);
+    UnloadModel (e.face6.model);
+  }
+
   // destroy the window and cleanup the OpenGL context
   CloseWindow ();
   return 0;
