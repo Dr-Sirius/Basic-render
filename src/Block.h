@@ -244,8 +244,15 @@ Elegible faces are set to their correct model and render is set true
 void
 SetAndDetermineRender2 (std::unordered_map<std::string, Block>& blocks)
 {
-  Texture2D tx = LoadTexture ("dirt.png");
-  Texture2D grass = LoadTexture ("grass.png");
+
+  Image dirtText = LoadImage ("dirt.png");
+  ImageResize (&dirtText, dirtText.width * 0.0625, dirtText.height * 0.0625);
+
+  Image grassText = LoadImage ("grass.png");
+  ImageResize (&grassText, grassText.width * 0.0625, grassText.height * 0.0625);
+
+  Texture2D tx = LoadTextureFromImage (dirtText);
+  Texture2D grass = LoadTextureFromImage (grassText);
   // unsigned i = 0;
   Model plane = LoadModelFromMesh (GenMeshPlane (1.0f, 1.0f, 1, 1));
   Model grassPlane = LoadModelFromMesh (GenMeshPlane (
@@ -269,12 +276,14 @@ SetAndDetermineRender2 (std::unordered_map<std::string, Block>& blocks)
 
     if (getBlock2 ({ pos.x, pos.y + 1, pos.z }, blocks) == BLOCK_TYPE::AIR)
     {
+
       b.face1.model = grassPlane;
       b.face1.position = { pos.x, pos.y + 0.5f, pos.z };
       b.face1.rotation = { 1.0, 0.0, 0.0 };
       b.face1.angle = 0.0f;
       b.face1.render = true;
       b.face1.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = grass;
+
       b.render = true;
       // println ("BLOCK{}[FACE1DONE]", i);
     }
