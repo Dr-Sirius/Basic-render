@@ -368,7 +368,7 @@ Build (Image noise)
     for (int z = 0; z < height; ++z)
     {
       float normalizedHeight = GetGrayScale (pixel[z * width + x]);
-      int yHeight = lround (normalizedHeight * 0.05f);
+      int yHeight = lround (normalizedHeight * 0.001f);
       println ("Y SIZE {}", yHeight);
       for (int y = 0; y < yHeight; ++y)
       {
@@ -413,7 +413,7 @@ Build2 (Image noise)
     for (int z = 0; z < height; ++z)
     {
       float normalizedHeight = GetGrayScale (pixel[z * width + x]);
-      int yHeight = lround (normalizedHeight * 0.3f);
+      int yHeight = lround (normalizedHeight * 0.03f);
       // println ("Y SIZE {}", yHeight);
       for (int y = 0; y < yHeight; ++y)
       {
@@ -434,6 +434,32 @@ Build2 (Image noise)
     }
   }
   return ents;
+}
+
+RayCollision
+CheckCol (std::unordered_map<std::string, Block>& blocks, Ray ray)
+{
+  for (auto& [pos, block] : blocks)
+  {
+    if (block.type == BLOCK_TYPE::AIR || !block.render)
+      continue;
+    Vector3 bpos = block.position;
+    Vector3 min = { bpos.x - 0.5f, bpos.y - 0.5f, bpos.z - 0.5f };
+    Vector3 max = { min.x + 1.0f, min.y + 1.0f, min.z + 1.0f };
+    BoundingBox bound = { min, max };
+    RayCollision coll = GetRayCollisionBox (ray, bound);
+    DrawLine3D (ray.position, coll.point, RED);
+    if (coll.hit)
+    {
+      coll.point = bpos;
+      println ("BLOCK POS {} COLL POS {}",
+               Vector3String (block.position),
+               Vector3String (coll.point));
+      DrawCubeWires (bpos, 1.0f, 1.0f, 1.0f, WHITE);
+      return coll;
+    }
+  }
+  return {};
 }
 
 #endif

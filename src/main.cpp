@@ -24,7 +24,7 @@ main ()
   HideCursor ();
   DisableCursor ();
 
-  Image noise = GenImagePerlinNoise (80, 80, 0.0, 0.0, 1.0f);
+  Image noise = GenImagePerlinNoise (32, 32, 0.0, 0.0, 1.0f);
   Texture2D noiseTex = LoadTextureFromImage (noise);
 
   std::unordered_map<std::string, Block> ents = Build2 (noise);
@@ -41,6 +41,7 @@ main ()
   player->camera.position = Vector3Zero ();
 
   // game loop
+  Vector2 cent = { GetScreenWidth () / 2.0f, GetScreenHeight () / 2.0f };
   while (!WindowShouldClose ())
   {
     player->update ();
@@ -64,6 +65,21 @@ main ()
         e.Update ();
       }
 
+      Ray ray = GetScreenToWorldRay (cent, player->camera);
+      DrawRay (ray, RED);
+
+      RayCollision coll = CheckCol (ents, ray);
+
+      if (coll.hit)
+      {
+        if (IsMouseButtonPressed (MOUSE_BUTTON_LEFT))
+        {
+          ents[Vector3String (coll.point)].type = BLOCK_TYPE::AIR;
+          SetAndDetermineRender2 (ents);
+          println ("dest");
+        }
+      }
+
       EndMode3D ();
     }
 
@@ -77,6 +93,8 @@ main ()
     DrawVector3 (player->velocity, { 0.0f, 15.0f }, "Velocity");
 
     DrawVector3 (player->camera.position, { 0.0f, 30.0f }, "Camera Pos");
+
+    DrawCircle (cent.x, cent.y, 1.0f, WHITE);
 
     EndDrawing ();
   }
