@@ -90,6 +90,13 @@ struct Block
       colliderCol = WHITE;
     }
   }
+
+  bool
+  IsFacesNotRendered ()
+  {
+    return !face1.render && !face2.render && !face3.render && !face4.render &&
+           !face5.render && !face6.render;
+  }
 };
 
 BLOCK_TYPE
@@ -439,27 +446,40 @@ Build2 (Image noise)
 RayCollision
 CheckCol (std::unordered_map<std::string, Block>& blocks, Ray ray)
 {
+  float maxDist = MAXFLOAT;
+  Vector3 closeBlockPos = { -1 };
+  bool blockHit = false;
+  RayCollision coll = { 0 };
   for (auto& [pos, block] : blocks)
   {
-    if (block.type == BLOCK_TYPE::AIR || !block.render)
+    if (block.type == BLOCK_TYPE::AIR || !block.render ||
+        block.IsFacesNotRendered ())
       continue;
     Vector3 bpos = block.position;
     Vector3 min = { bpos.x - 0.5f, bpos.y - 0.5f, bpos.z - 0.5f };
     Vector3 max = { min.x + 1.0f, min.y + 1.0f, min.z + 1.0f };
     BoundingBox bound = { min, max };
-    RayCollision coll = GetRayCollisionBox (ray, bound);
+    coll = GetRayCollisionBox (ray, bound);
+    // DrawSphere (coll.point, 0.5f, RED);
+    DrawBoundingBox (bound, RED);
     DrawLine3D (ray.position, coll.point, RED);
-    if (coll.hit)
+    if (coll.hit && coll.distance < maxDist)
     {
+      maxDist = coll.distance;
+      closeBlockPos = bpos;
+      blockHit = true;
+      DrawBoundingBox (bound, WHITE);
       coll.point = bpos;
+
       println ("BLOCK POS {} COLL POS {}",
                Vector3String (block.position),
                Vector3String (coll.point));
-      DrawCubeWires (bpos, 1.0f, 1.0f, 1.0f, WHITE);
-      return coll;
+      // DrawCubeWires (bpos, 1.0f, 1.0f, 1.0f, WHITE);
     }
   }
-  return {};
+  coll.point = closeBlockPos;
+  coll.hit = blockHit;
+  return coll;
 }
 
 #endif

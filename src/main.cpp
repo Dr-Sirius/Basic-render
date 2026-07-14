@@ -65,7 +65,7 @@ main ()
         e.Update ();
       }
 
-      Ray ray = GetScreenToWorldRay (cent, player->camera);
+      Ray ray = GetMouseRay (cent, player->camera);
       DrawRay (ray, RED);
 
       RayCollision coll = CheckCol (ents, ray);
