@@ -449,6 +449,7 @@ CheckCol (std::unordered_map<std::string, Block>& blocks, Ray ray)
   float maxDist = MAXFLOAT;
   Vector3 closeBlockPos = { -1 };
   bool blockHit = false;
+  Vector3 colNorm = {};
   RayCollision coll = { 0 };
   for (auto& [pos, block] : blocks)
   {
@@ -467,18 +468,23 @@ CheckCol (std::unordered_map<std::string, Block>& blocks, Ray ray)
     {
       maxDist = coll.distance;
       closeBlockPos = bpos;
+      colNorm = coll.normal;
       blockHit = true;
       DrawBoundingBox (bound, WHITE);
       coll.point = bpos;
 
-      println ("BLOCK POS {} COLL POS {}",
+      println ("BLOCK POS {} COLL POS {} BLOCK NORM {}",
                Vector3String (block.position),
-               Vector3String (coll.point));
+               Vector3String (coll.point),
+               Vector3String (Vector3Add (bpos, colNorm)));
+      DrawLine3D (bpos, Vector3Add (bpos, coll.normal), RED);
+
       // DrawCubeWires (bpos, 1.0f, 1.0f, 1.0f, WHITE);
     }
   }
   coll.point = closeBlockPos;
   coll.hit = blockHit;
+  coll.normal = colNorm;
   return coll;
 }
 

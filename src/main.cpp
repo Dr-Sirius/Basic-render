@@ -78,6 +78,22 @@ main ()
           SetAndDetermineRender2 (ents);
           println ("dest");
         }
+        if (IsMouseButtonPressed (MOUSE_BUTTON_RIGHT))
+        {
+          Vector3 nBlock = Vector3Add (coll.point, coll.normal);
+          nBlock = Vector3Floor (nBlock);
+          ents.insert ({ Vector3String (nBlock),
+                         Block { .face1 = { 0 },
+                                 .face2 = { 0 },
+                                 .face3 = { 0 },
+                                 .face4 = { 0 },
+                                 .face5 = { 0 },
+                                 .face6 = { 0 },
+                                 .position = nBlock,
+                                 .type = BLOCK_TYPE::GROUND } });
+          SetAndDetermineRender2 (ents);
+          println ("create NORM {}", Vector3String (nBlock));
+        }
       }
 
       EndMode3D ();

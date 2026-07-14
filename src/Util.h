@@ -45,4 +45,16 @@ PointToIndex (Vector3 vec)
   return vec.x + vec.z * 32 + vec.y * 32 * 32;
 }
 
+Vector3
+Vector3Floor (Vector3 vec)
+{
+  return { floor (vec.x), floor (vec.y), floor (vec.z) };
+}
+
+Vector3
+Vector3Ceil (Vector3 vec)
+{
+  return { ceil (vec.x), ceil (vec.y), ceil (vec.z) };
+}
+
 #endif
