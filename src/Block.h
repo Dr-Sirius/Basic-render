@@ -444,7 +444,9 @@ Build2 (Image noise)
 }
 
 RayCollision
-CheckCol (std::unordered_map<std::string, Block>& blocks, Ray ray)
+CheckCol (std::unordered_map<std::string, Block>& blocks,
+          Ray ray,
+          bool drawDebug = false)
 {
   float maxDist = MAXFLOAT;
   Vector3 closeBlockPos = { -1 };
@@ -462,22 +464,26 @@ CheckCol (std::unordered_map<std::string, Block>& blocks, Ray ray)
     BoundingBox bound = { min, max };
     coll = GetRayCollisionBox (ray, bound);
     // DrawSphere (coll.point, 0.5f, RED);
-    DrawBoundingBox (bound, RED);
-    DrawLine3D (ray.position, coll.point, RED);
+    // DrawBoundingBox (bound, RED);
+    // DrawLine3D (ray.position, coll.point, RED);
     if (coll.hit && coll.distance < maxDist)
     {
       maxDist = coll.distance;
       closeBlockPos = bpos;
       colNorm = coll.normal;
       blockHit = true;
-      DrawBoundingBox (bound, WHITE);
+
       coll.point = bpos;
 
-      println ("BLOCK POS {} COLL POS {} BLOCK NORM {}",
-               Vector3String (block.position),
-               Vector3String (coll.point),
-               Vector3String (Vector3Add (bpos, colNorm)));
-      DrawLine3D (bpos, Vector3Add (bpos, coll.normal), RED);
+      // println ("BLOCK POS {} COLL POS {} BLOCK NORM {}",
+      //          Vector3String (block.position),
+      //          Vector3String (coll.point),
+      //          Vector3String (Vector3Add (bpos, colNorm)));
+      if (drawDebug)
+      {
+        DrawBoundingBox (bound, WHITE);
+        DrawLine3D (bpos, Vector3Add (bpos, coll.normal), RED);
+      }
 
       // DrawCubeWires (bpos, 1.0f, 1.0f, 1.0f, WHITE);
     }

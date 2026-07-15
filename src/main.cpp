@@ -57,6 +57,8 @@ main ()
       DrawGrid (32, 1.0f);
       // player->CheckBlockCol ();
 
+      // player->CheckFloorCol ();
+
       for (auto& [pos, e] : ents)
       {
         // if (!e.render)
@@ -72,27 +74,44 @@ main ()
 
       if (coll.hit)
       {
+        Vector3 bpos = coll.point;
+        Vector3 min = { bpos.x - 0.5f, bpos.y - 0.5f, bpos.z - 0.5f };
+        Vector3 max = { min.x + 1.0f, min.y + 1.0f, min.z + 1.0f };
+        DrawBoundingBox ({ min, max }, WHITE);
         if (IsMouseButtonPressed (MOUSE_BUTTON_LEFT))
         {
-          ents[Vector3String (coll.point)].type = BLOCK_TYPE::AIR;
-          SetAndDetermineRender2 (ents);
-          println ("dest");
+          if (ents.contains (Vector3String (coll.point)))
+          {
+            ents[Vector3String (coll.point)].type = BLOCK_TYPE::AIR;
+            SetAndDetermineRender2 (ents);
+            println ("dest");
+          }
         }
         if (IsMouseButtonPressed (MOUSE_BUTTON_RIGHT))
         {
+
           Vector3 nBlock = Vector3Add (coll.point, coll.normal);
           nBlock = Vector3Floor (nBlock);
-          ents.insert ({ Vector3String (nBlock),
-                         Block { .face1 = { 0 },
-                                 .face2 = { 0 },
-                                 .face3 = { 0 },
-                                 .face4 = { 0 },
-                                 .face5 = { 0 },
-                                 .face6 = { 0 },
-                                 .position = nBlock,
-                                 .type = BLOCK_TYPE::GROUND } });
+          std::string nPos = Vector3String (nBlock);
+
+          if (ents.contains (nPos))
+          {
+            ents[nPos].type = BLOCK_TYPE::GROUND;
+          }
+          else
+          {
+            ents.insert ({ nPos,
+                           Block { .face1 = { 0 },
+                                   .face2 = { 0 },
+                                   .face3 = { 0 },
+                                   .face4 = { 0 },
+                                   .face5 = { 0 },
+                                   .face6 = { 0 },
+                                   .position = nBlock,
+                                   .type = BLOCK_TYPE::GROUND } });
+          }
           SetAndDetermineRender2 (ents);
-          println ("create NORM {}", Vector3String (nBlock));
+          println ("create NORM {}", nPos);
         }
       }
 

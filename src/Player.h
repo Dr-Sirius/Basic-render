@@ -60,30 +60,18 @@ public:
     handlePhysics ();
     Vector3 newPos = Vector3Add (position, velocity);
     position = newPos;
+    // ray = { position, { position.x, position.y - 1.0f, position.z } };
     handleCamera ();
-  }
-
-  void
-  CheckBlockCol ()
-  {
-
-    Vector3 endPos = { position.x + (direction.x * distance),
-                       position.y * (direction.y + distance),
-                       position.z + (direction.z * distance) };
-    DrawCube (endPos, 1.0f, 1.0f, 1.0f, WHITE);
-
-    println ("Dir {}", Vector3String (direction));
   }
 
 private:
   float speed = 10.0f;
-  float headDist = 4.0f;
+  float headDist = 1.0f;
   float pitch, yaw;
   float distance = 2.0f;
 
-  Ray ray = { 0 };
+  Ray ray = { position, { position.x, position.y - 1.0f, position.z } };
 
-  World world;
   std::unordered_map<std::string, Block>& blocks;
 
   Vector3 direction;
@@ -118,15 +106,13 @@ private:
       velocity.z = 0.0f; // Lerp (velocity.z, 0.001f, 0.1f);
     }
 
-    if (!isOnGround () && position.y > 0)
-      velocity.y += -0.98 * GetFrameTime ();
-    if (position.y <= 0)
-    {
+    if (!isOnGround ())
+      velocity.y += -0.098 * GetFrameTime ();
+    else
       velocity.y = 0;
-    }
     if (IsKeyPressed (KEY_SPACE))
     {
-      velocity.y = 0.4f;
+      velocity.y = 0.025f;
     }
   }
 
@@ -220,12 +206,12 @@ private:
   bool
   isOnGround ()
   {
-    for (int i = 0; i < world.size (); ++i)
+    Vector3 pos = Vector3Ceil (position);
+    std::string sPos = Vector3String ({ pos.x, pos.y - 1.0f, pos.z });
+    if (blocks.contains (sPos))
     {
-      if (position.y <= 0)
-      {
+      if (blocks[sPos].type != BLOCK_TYPE::AIR)
         return true;
-      }
     }
     return false;
   }
