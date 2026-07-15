@@ -123,7 +123,7 @@ main ()
 
     DrawTexture (noiseTex, GetScreenWidth () - noiseTex.width, 0, WHITE);
 
-    DrawVector3 (player->position, { 0.0f, 0.0f }, "Position");
+    DrawVector3 (Vector3Ceil (player->position), { 0.0f, 0.0f }, "Position");
 
     DrawVector3 (player->velocity, { 0.0f, 15.0f }, "Velocity");
 
