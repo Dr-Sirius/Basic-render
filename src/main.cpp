@@ -83,7 +83,8 @@ main ()
           if (ents.contains (Vector3String (coll.point)))
           {
             ents[Vector3String (coll.point)].type = BLOCK_TYPE::AIR;
-            SetAndDetermineRender2 (ents);
+            ents[Vector3String (coll.point)].render = false;
+            DetermineRerender (ents, getBlock (coll.point, ents));
             println ("dest");
           }
         }
@@ -101,16 +102,16 @@ main ()
           else
           {
             ents.insert ({ nPos,
-                           Block { .face1 = { 0 },
-                                   .face2 = { 0 },
-                                   .face3 = { 0 },
-                                   .face4 = { 0 },
-                                   .face5 = { 0 },
-                                   .face6 = { 0 },
+                           Block { .topFace = { 0 },
+                                   .bottomFace = { 0 },
+                                   .frontFace = { 0 },
+                                   .backFace = { 0 },
+                                   .rightFace = { 0 },
+                                   .leftFace = { 0 },
                                    .position = nBlock,
                                    .type = BLOCK_TYPE::GROUND } });
           }
-          SetAndDetermineRender2 (ents);
+          DetermineRerender (ents, getBlock (nBlock, ents), false);
           println ("create NORM {}", nPos);
         }
       }

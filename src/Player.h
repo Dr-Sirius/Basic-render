@@ -178,7 +178,7 @@ private:
   void
   handleInput ()
   {
-    if (IsKeyPressed (KEY_F1))
+    if (IsKeyPressed (KEY_F1) || IsKeyPressed (KEY_F))
     {
       free = !free;
     }
@@ -206,11 +206,16 @@ private:
   bool
   isOnGround ()
   {
-    Vector3 pos = Vector3Ceil (position);
-    std::string sPos = Vector3String ({ pos.x, pos.y - 1.0f, pos.z });
-    if (blocks.contains (sPos))
+    Vector3 cPos = Vector3Ceil (position);
+    std::string strCPos = Vector3String ({ cPos.x, cPos.y - 1.0f, cPos.z });
+
+    Vector3 fPos = Vector3Floor (position);
+    std::string strFPos = Vector3String ({ fPos.x, fPos.y - 1.0f, fPos.z });
+
+    if (blocks.contains (strCPos) || blocks.contains (strFPos))
     {
-      if (blocks[sPos].type != BLOCK_TYPE::AIR)
+      if (blocks[strCPos].type != BLOCK_TYPE::AIR ||
+          blocks[strFPos].type != BLOCK_TYPE::AIR)
         return true;
     }
     return false;

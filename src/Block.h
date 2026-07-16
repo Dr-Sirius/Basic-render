@@ -38,12 +38,12 @@ struct Block
 {
   // Mesh block;
   // Model model;
-  Face face1;
-  Face face2;
-  Face face3;
-  Face face4;
-  Face face5;
-  Face face6;
+  Face topFace;
+  Face bottomFace;
+  Face frontFace;
+  Face backFace;
+  Face rightFace;
+  Face leftFace;
 
   Vector3 position;
   BLOCK_TYPE type;
@@ -58,12 +58,12 @@ struct Block
   {
     if (render)
     {
-      face1.DrawFace ();
-      face2.DrawFace ();
-      face3.DrawFace ();
-      face4.DrawFace ();
-      face5.DrawFace ();
-      face6.DrawFace ();
+      topFace.DrawFace ();
+      bottomFace.DrawFace ();
+      frontFace.DrawFace ();
+      backFace.DrawFace ();
+      rightFace.DrawFace ();
+      leftFace.DrawFace ();
     }
     if (debug)
     {
@@ -94,20 +94,18 @@ struct Block
   bool
   IsFacesNotRendered ()
   {
-    return !face1.render && !face2.render && !face3.render && !face4.render &&
-           !face5.render && !face6.render;
+    return !topFace.render && !bottomFace.render && !frontFace.render &&
+           !backFace.render && !rightFace.render && !leftFace.render;
   }
 };
 
-BLOCK_TYPE
-getBlock (Vector3 vec, std::vector<Block> blocks)
+Block&
+getBlock (Vector3 vec, std::unordered_map<std::string, Block>& blocks)
 {
-  int index = PointToIndex (vec);
-  if (index >= blocks.size () || index < 0)
-  {
-    return BLOCK_TYPE::AIR;
-  }
-  return blocks[index].type;
+  auto it = blocks.find (Vector3String (vec));
+  if (it == blocks.end ())
+    return blocks.end ()->second;
+  return it->second;
 }
 
 /*
@@ -115,7 +113,7 @@ Returns the BLOCK_TYPE of the block at positition Vector3 vec using the
 Vector3String representation
 */
 BLOCK_TYPE
-getBlock2 (Vector3 vec, std::unordered_map<std::string, Block>& blocks)
+getBlockType (Vector3 vec, std::unordered_map<std::string, Block>& blocks)
 {
   auto it = blocks.find (Vector3String (vec));
   if (it == blocks.end ())
@@ -138,109 +136,6 @@ blockString (BLOCK_TYPE block)
     default:
       return "AIR";
       break;
-  }
-}
-
-void
-SetAndDetermineRender (std::vector<Block>& blocks)
-{
-  Texture2D tx = LoadTexture ("grass.png");
-  unsigned i = 0;
-  Model plane = LoadModelFromMesh (GenMeshPlane (1.0f, 1.0f, 1, 1));
-  for (Block& b : blocks)
-  {
-
-    b.render = false;
-    if (b.type == BLOCK_TYPE::AIR)
-    {
-      continue;
-    }
-
-    b.face1.render = false;
-    b.face2.render = false;
-    b.face3.render = false;
-    b.face4.render = false;
-    b.face5.render = false;
-    b.face6.render = false;
-    bool drawY = false;
-    Vector3 bPos = b.position;
-    if (getBlock ({ bPos.x, bPos.y + 1, bPos.z }, blocks) == BLOCK_TYPE::AIR)
-    {
-      b.face1.model = plane;
-      b.face1.position = { bPos.x, bPos.y + 0.5f, bPos.z };
-      b.face1.rotation = { 1.0, 0.0, 0.0 };
-      b.face1.angle = 0.0f;
-      b.face1.render = true;
-      b.face1.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
-      b.render = true;
-      println ("BLOCK{}[FACE1DONE]", i);
-    }
-
-    if (getBlock ({ bPos.x, bPos.y - 1, bPos.z }, blocks) == BLOCK_TYPE::AIR)
-    {
-      b.face2.model = plane;
-      b.face2.position = { bPos.x, bPos.y - 0.5f, bPos.z };
-      b.face2.rotation = { 1.0, 0.0, 0.0 };
-      b.face2.angle = 180.0f;
-      b.face2.render = true;
-      b.face2.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
-      b.render = true;
-      println ("BLOCK{}[FACE2DONE]", i);
-    }
-    // drawY = true;
-
-    bool drawX = false;
-    if (getBlock ({ bPos.x + 1, bPos.y, bPos.z }, blocks) == BLOCK_TYPE::AIR)
-    {
-      b.face3.model = plane;
-      b.face3.position = { bPos.x + 0.5f, bPos.y, bPos.z };
-      b.face3.rotation = { 0.0, 0.0, 1.0 };
-      b.face3.angle = -90.0f;
-      b.face3.render = true;
-      b.face3.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
-      b.render = true;
-      println ("BLOCK{}[FACE3DONE]", i);
-    }
-
-    if (getBlock ({ bPos.x - 1, bPos.y, bPos.z }, blocks) == BLOCK_TYPE::AIR)
-    {
-      b.face4.model = plane;
-      b.face4.position = { bPos.x - 0.5f, bPos.y, bPos.z };
-      b.face4.rotation = { 0.0, 0.0, 1.0 };
-      b.face4.angle = 90.0f;
-      b.face4.render = true;
-      b.face4.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
-      b.render = true;
-      println ("BLOCK{}[FACE4DONE]", i);
-    }
-
-    bool drawZ = false;
-    if (getBlock ({ bPos.x, bPos.y, bPos.z + 1 }, blocks) == BLOCK_TYPE::AIR)
-    {
-      b.face5.model = plane;
-      b.face5.position = { bPos.x, bPos.y, bPos.z + 0.5f };
-      b.face5.rotation = { 1.0, 0.0, 0.0 };
-      b.face5.angle = 90.0f;
-      b.face5.render = true;
-      b.face5.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
-      b.render = true;
-      println ("BLOCK{}[FACE5DONE]", i);
-    }
-
-    if (getBlock ({ bPos.x, bPos.y, bPos.z - 1 }, blocks) == BLOCK_TYPE::AIR)
-    {
-      b.face6.model = plane;
-      b.face6.position = { bPos.x, bPos.y, bPos.z - 0.5f };
-      b.face6.rotation = { 1.0, 0.0, 0.0 };
-      b.face6.angle = -90.0f;
-      b.face6.render = true;
-      b.face6.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
-      b.render = true;
-      println ("BLOCK{}[FACE6DONE]", i);
-    }
-    ++i;
-
-    // println ("BLOCK END");
   }
 }
 
@@ -274,89 +169,301 @@ SetAndDetermineRender2 (std::unordered_map<std::string, Block>& blocks)
       continue;
     }
 
-    b.face1.render = false;
-    b.face2.render = false;
-    b.face3.render = false;
-    b.face4.render = false;
-    b.face5.render = false;
-    b.face6.render = false;
+    b.topFace.render = false;
+    b.bottomFace.render = false;
+    b.frontFace.render = false;
+    b.backFace.render = false;
+    b.rightFace.render = false;
+    b.leftFace.render = false;
 
-    if (getBlock2 ({ pos.x, pos.y + 1, pos.z }, blocks) == BLOCK_TYPE::AIR)
+    if (getBlockType ({ pos.x, pos.y + 1, pos.z }, blocks) == BLOCK_TYPE::AIR)
     {
 
-      b.face1.model = grassPlane;
-      b.face1.position = { pos.x, pos.y + 0.5f, pos.z };
-      b.face1.rotation = { 1.0, 0.0, 0.0 };
-      b.face1.angle = 0.0f;
-      b.face1.render = true;
-      b.face1.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = grass;
+      b.topFace.model = grassPlane;
+      b.topFace.position = { pos.x, pos.y + 0.5f, pos.z };
+      b.topFace.rotation = { 1.0, 0.0, 0.0 };
+      b.topFace.angle = 0.0f;
+      b.topFace.render = true;
+      b.topFace.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = grass;
 
       b.render = true;
       // println ("BLOCK{}[FACE1DONE]", i);
     }
 
-    if (getBlock2 ({ pos.x, pos.y - 1, pos.z }, blocks) == BLOCK_TYPE::AIR)
+    if (getBlockType ({ pos.x, pos.y - 1, pos.z }, blocks) == BLOCK_TYPE::AIR)
     {
-      b.face2.model = plane;
-      b.face2.position = { pos.x, pos.y - 0.5f, pos.z };
-      b.face2.rotation = { 1.0, 0.0, 0.0 };
-      b.face2.angle = 180.0f;
-      b.face2.render = true;
-      b.face2.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+      b.bottomFace.model = plane;
+      b.bottomFace.position = { pos.x, pos.y - 0.5f, pos.z };
+      b.bottomFace.rotation = { 1.0, 0.0, 0.0 };
+      b.bottomFace.angle = 180.0f;
+      b.bottomFace.render = true;
+      b.bottomFace.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
       b.render = true;
       // println ("BLOCK{}[FACE2DONE]", i);
     }
 
-    if (getBlock2 ({ pos.x + 1, pos.y, pos.z }, blocks) == BLOCK_TYPE::AIR)
+    if (getBlockType ({ pos.x + 1, pos.y, pos.z }, blocks) == BLOCK_TYPE::AIR)
     {
-      b.face3.model = plane;
-      b.face3.position = { pos.x + 0.5f, pos.y, pos.z };
-      b.face3.rotation = { 0.0, 0.0, 1.0 };
-      b.face3.angle = -90.0f;
-      b.face3.render = true;
-      b.face3.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+      b.frontFace.model = plane;
+      b.frontFace.position = { pos.x + 0.5f, pos.y, pos.z };
+      b.frontFace.rotation = { 0.0, 0.0, 1.0 };
+      b.frontFace.angle = -90.0f;
+      b.frontFace.render = true;
+      b.frontFace.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
       b.render = true;
       // println ("BLOCK{}[FACE3DONE]", i);
     }
 
-    if (getBlock2 ({ pos.x - 1, pos.y, pos.z }, blocks) == BLOCK_TYPE::AIR)
+    if (getBlockType ({ pos.x - 1, pos.y, pos.z }, blocks) == BLOCK_TYPE::AIR)
     {
-      b.face4.model = plane;
-      b.face4.position = { pos.x - 0.5f, pos.y, pos.z };
-      b.face4.rotation = { 0.0, 0.0, 1.0 };
-      b.face4.angle = 90.0f;
-      b.face4.render = true;
-      b.face4.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+      b.backFace.model = plane;
+      b.backFace.position = { pos.x - 0.5f, pos.y, pos.z };
+      b.backFace.rotation = { 0.0, 0.0, 1.0 };
+      b.backFace.angle = 90.0f;
+      b.backFace.render = true;
+      b.backFace.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
       b.render = true;
       // println ("BLOCK{}[FACE4DONE]", i);
     }
 
-    if (getBlock2 ({ pos.x, pos.y, pos.z + 1 }, blocks) == BLOCK_TYPE::AIR)
+    if (getBlockType ({ pos.x, pos.y, pos.z + 1 }, blocks) == BLOCK_TYPE::AIR)
     {
-      b.face5.model = plane;
-      b.face5.position = { pos.x, pos.y, pos.z + 0.5f };
-      b.face5.rotation = { 1.0, 0.0, 0.0 };
-      b.face5.angle = 90.0f;
-      b.face5.render = true;
-      b.face5.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+      b.rightFace.model = plane;
+      b.rightFace.position = { pos.x, pos.y, pos.z + 0.5f };
+      b.rightFace.rotation = { 1.0, 0.0, 0.0 };
+      b.rightFace.angle = 90.0f;
+      b.rightFace.render = true;
+      b.rightFace.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
       b.render = true;
       // println ("BLOCK{}[FACE5DONE]", i);
     }
 
-    if (getBlock2 ({ pos.x, pos.y, pos.z - 1 }, blocks) == BLOCK_TYPE::AIR)
+    if (getBlockType ({ pos.x, pos.y, pos.z - 1 }, blocks) == BLOCK_TYPE::AIR)
     {
-      b.face6.model = plane;
-      b.face6.position = { pos.x, pos.y, pos.z - 0.5f };
-      b.face6.rotation = { 1.0, 0.0, 0.0 };
-      b.face6.angle = -90.0f;
-      b.face6.render = true;
-      b.face6.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+      b.leftFace.model = plane;
+      b.leftFace.position = { pos.x, pos.y, pos.z - 0.5f };
+      b.leftFace.rotation = { 1.0, 0.0, 0.0 };
+      b.leftFace.angle = -90.0f;
+      b.leftFace.render = true;
+      b.leftFace.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
       b.render = true;
       // println ("BLOCK{}[FACE6DONE]", i);
     }
     //++i;
 
     // println ("BLOCK END");
+  }
+}
+
+void
+EnableFace (Face& face,
+            Model& model,
+            Texture& tx,
+            Vector3 pos,
+            Vector3 rot,
+            float angle)
+{
+  face.model = model;
+  face.position = pos;
+  face.rotation = rot;
+  face.angle = -angle;
+  face.render = true;
+  face.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
+}
+
+void
+DetermineRerender (std::unordered_map<std::string, Block>& blocks,
+                   Block& target,
+                   bool dest = true)
+{
+  Vector3 bPos = target.position;
+
+  Image dirtText = LoadImage ("dirt.png");
+  ImageResize (&dirtText, dirtText.width * 0.0625, dirtText.height * 0.0625);
+
+  Image grassText = LoadImage ("grass.png");
+  ImageResize (&grassText, grassText.width * 0.0625, grassText.height * 0.0625);
+
+  Texture2D tx = LoadTextureFromImage (dirtText);
+  Texture2D grass = LoadTextureFromImage (grassText);
+
+  Model plane = LoadModelFromMesh (GenMeshPlane (1.0f, 1.0f, 1, 1));
+  Model grassPlane = LoadModelFromMesh (GenMeshPlane (
+    1.0f, 1.0f, 1, 1)); // needed because meshes are pointers in models
+
+  if (dest)
+  {
+    // btm top
+    if (getBlockType ({ bPos.x, bPos.y + 1, bPos.z }, blocks) !=
+        BLOCK_TYPE::AIR)
+    {
+      Block& block = getBlock ({ bPos.x, bPos.y + 1, bPos.z }, blocks);
+
+      Vector3 nFPos = { block.position.x,
+                        block.position.y - 0.5f,
+                        block.position.z };
+      EnableFace (
+        block.bottomFace, plane, tx, nFPos, { 1.0, 0.0, 0.0 }, 180.0f);
+      block.render = true;
+    }
+    if (getBlockType ({ bPos.x, bPos.y - 1, bPos.z }, blocks) !=
+        BLOCK_TYPE::AIR)
+    {
+      Block& block = getBlock ({ bPos.x, bPos.y - 1, bPos.z }, blocks);
+      Vector3 nFPos = { block.position.x,
+                        block.position.y + 0.5f,
+                        block.position.z };
+      EnableFace (
+        block.topFace, grassPlane, grass, nFPos, { 1.0, 0.0, 0.0 }, 0.0f);
+      block.render = true;
+    }
+
+    // b f
+    if (getBlockType ({ bPos.x - 1, bPos.y, bPos.z }, blocks) !=
+        BLOCK_TYPE::AIR)
+    {
+      Block& block = getBlock ({ bPos.x - 1, bPos.y, bPos.z }, blocks);
+      Vector3 nFPos = { block.position.x + 0.5f,
+                        block.position.y,
+                        block.position.z };
+      EnableFace (block.frontFace, plane, tx, nFPos, { 0.0, 0.0, 1.0 }, 90.0f);
+      block.render = true;
+    }
+    if (getBlockType ({ bPos.x + 1, bPos.y, bPos.z }, blocks) !=
+        BLOCK_TYPE::AIR)
+    {
+      Block& block = getBlock ({ bPos.x + 1, bPos.y, bPos.z }, blocks);
+      Vector3 nFPos = { block.position.x - 0.5f,
+                        block.position.y,
+                        block.position.z };
+      EnableFace (block.backFace, plane, tx, nFPos, { 0.0, 0.0, 1.0 }, -90.0f);
+      block.render = true;
+    }
+
+    // l r
+    if (getBlockType ({ bPos.x, bPos.y, bPos.z - 1 }, blocks) !=
+        BLOCK_TYPE::AIR)
+    {
+      Block& block = getBlock ({ bPos.x, bPos.y, bPos.z - 1 }, blocks);
+      Vector3 nFPos = { block.position.x,
+                        block.position.y,
+                        block.position.z + 0.5f };
+      EnableFace (block.rightFace, plane, tx, nFPos, { 1.0, 0.0, 0.0 }, -90.0f);
+      block.render = true;
+    }
+    if (getBlockType ({ bPos.x, bPos.y, bPos.z + 1 }, blocks) !=
+        BLOCK_TYPE::AIR)
+    {
+      Block& block = getBlock ({ bPos.x, bPos.y, bPos.z + 1 }, blocks);
+      Vector3 nFPos = { block.position.x,
+                        block.position.y,
+                        block.position.z - 0.5f };
+      EnableFace (block.leftFace, plane, tx, nFPos, { 1.0, 0.0, 0.0 }, 90.0f);
+      block.render = true;
+    }
+  }
+  else
+  {
+    if (getBlockType ({ bPos.x, bPos.y + 1, bPos.z }, blocks) !=
+        BLOCK_TYPE::AIR)
+    {
+      Block& block = getBlock ({ bPos.x, bPos.y + 1, bPos.z }, blocks);
+      block.bottomFace.render = false;
+    }
+    else
+    {
+      EnableFace (target.topFace,
+                  grassPlane,
+                  grass,
+                  { bPos.x, bPos.y + 0.5f, bPos.z },
+                  { 1.0, 0.0, 0.0 },
+                  0.0f);
+    }
+    if (getBlockType ({ bPos.x, bPos.y - 1, bPos.z }, blocks) !=
+        BLOCK_TYPE::AIR)
+    {
+      Block& block = getBlock ({ bPos.x, bPos.y - 1, bPos.z }, blocks);
+
+      block.topFace.render = false;
+    }
+    else
+    {
+      EnableFace (target.bottomFace,
+                  plane,
+                  tx,
+                  { bPos.x, bPos.y - 0.5f, bPos.z },
+                  { 1.0, 0.0, 0.0 },
+                  180.0f);
+    }
+
+    // b f
+    if (getBlockType ({ bPos.x - 1, bPos.y, bPos.z }, blocks) !=
+        BLOCK_TYPE::AIR)
+    {
+      Block& block = getBlock ({ bPos.x - 1, bPos.y, bPos.z }, blocks);
+
+      block.frontFace.render = false;
+    }
+    else
+    {
+      EnableFace (target.backFace,
+                  plane,
+                  tx,
+                  { bPos.x - 0.5f, bPos.y, bPos.z },
+                  { 0.0, 0.0, 1.0 },
+                  -90.0f);
+    }
+    if (getBlockType ({ bPos.x + 1, bPos.y, bPos.z }, blocks) !=
+        BLOCK_TYPE::AIR)
+    {
+      Block& block = getBlock ({ bPos.x + 1, bPos.y, bPos.z }, blocks);
+
+      block.backFace.render = false;
+    }
+    else
+    {
+      EnableFace (target.frontFace,
+                  plane,
+                  tx,
+                  { bPos.x + 0.5f, bPos.y, bPos.z },
+                  { 0.0, 0.0, 1.0 },
+                  90.0f);
+    }
+
+    // l r
+    if (getBlockType ({ bPos.x, bPos.y, bPos.z - 1 }, blocks) !=
+        BLOCK_TYPE::AIR)
+    {
+      Block& block = getBlock ({ bPos.x, bPos.y, bPos.z - 1 }, blocks);
+
+      block.rightFace.render = false;
+    }
+    else
+    {
+      EnableFace (target.leftFace,
+                  plane,
+                  tx,
+                  { bPos.x, bPos.y, bPos.z - 0.5f },
+                  { 1.0, 0.0, 0.0 },
+                  90.0f);
+    }
+    if (getBlockType ({ bPos.x, bPos.y, bPos.z + 1 }, blocks) !=
+        BLOCK_TYPE::AIR)
+    {
+      Block& block = getBlock ({ bPos.x, bPos.y, bPos.z + 1 }, blocks);
+
+      block.leftFace.render = false;
+    }
+    else
+    {
+      EnableFace (target.rightFace,
+                  plane,
+                  tx,
+                  { bPos.x, bPos.y, bPos.z + 0.5f },
+                  { 1.0, 0.0, 0.0 },
+                  -90.0f);
+    }
+    target.render = true;
   }
 }
 
@@ -381,12 +488,12 @@ Build (Image noise)
       {
 
         Block en =
-          Block { .face1 = { 0 },
-                  .face2 = { 0 },
-                  .face3 = { 0 },
-                  .face4 = { 0 },
-                  .face5 = { 0 },
-                  .face6 = { 0 },
+          Block { .topFace = { 0 },
+                  .bottomFace = { 0 },
+                  .frontFace = { 0 },
+                  .backFace = { 0 },
+                  .rightFace = { 0 },
+                  .leftFace = { 0 },
                   .position = Vector3 { (float) x, (float) y, (float) z },
                   .type = BLOCK_TYPE::GROUND };
 
@@ -426,12 +533,12 @@ Build2 (Image noise)
       {
 
         Block en =
-          Block { .face1 = { 0 },
-                  .face2 = { 0 },
-                  .face3 = { 0 },
-                  .face4 = { 0 },
-                  .face5 = { 0 },
-                  .face6 = { 0 },
+          Block { .topFace = { 0 },
+                  .bottomFace = { 0 },
+                  .frontFace = { 0 },
+                  .backFace = { 0 },
+                  .rightFace = { 0 },
+                  .leftFace = { 0 },
                   .position = Vector3 { (float) x, (float) y, (float) z },
                   .type = BLOCK_TYPE::GROUND };
 
