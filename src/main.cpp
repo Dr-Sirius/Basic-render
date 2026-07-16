@@ -8,9 +8,12 @@
 
 #include "Block.h"
 #include "Entity.h"
+#include "Globals.h"
 #include "Player.h"
 #include "Util.h"
 #include "resource_dir.h"
+
+unsigned refresh = 0;
 
 int
 main ()
@@ -26,6 +29,9 @@ main ()
 
   Image noise = GenImagePerlinNoise (32, 32, 0.0, 0.0, 1.0f);
   Texture2D noiseTex = LoadTextureFromImage (noise);
+
+  BuildTextureMap ();
+  BuildModelMap ();
 
   std::unordered_map<std::string, Block> ents = Build2 (noise);
 
@@ -44,6 +50,7 @@ main ()
   Vector2 cent = { GetScreenWidth () / 2.0f, GetScreenHeight () / 2.0f };
   while (!WindowShouldClose ())
   {
+
     player->update ();
 
     //  drawing
@@ -78,7 +85,7 @@ main ()
         Vector3 min = { bpos.x - 0.5f, bpos.y - 0.5f, bpos.z - 0.5f };
         Vector3 max = { min.x + 1.0f, min.y + 1.0f, min.z + 1.0f };
         DrawBoundingBox ({ min, max }, WHITE);
-        if (IsMouseButtonPressed (MOUSE_BUTTON_LEFT))
+        if (IsMouseButtonDown (MOUSE_BUTTON_LEFT))
         {
           if (ents.contains (Vector3String (coll.point)))
           {
@@ -130,9 +137,20 @@ main ()
 
     DrawVector3 (player->camera.position, { 0.0f, 30.0f }, "Camera Pos");
 
+    DrawText (
+      std::format ("Refresh:{}", refresh).c_str (), 0.0f, 60.0f, 15, WHITE);
+
     DrawCircle (cent.x, cent.y, 1.0f, WHITE);
 
     EndDrawing ();
+
+    ++refresh;
+    if (refresh > 65536)
+    {
+      SetAndDetermineRender2 (ents);
+      println ("REFRESH");
+      refresh = 0;
+    }
   }
   UnloadImage (noise);
   UnloadTexture (noiseTex);

@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "Globals.h"
 #include "Util.h"
 
 using std::print;
@@ -147,18 +148,11 @@ void
 SetAndDetermineRender2 (std::unordered_map<std::string, Block>& blocks)
 {
 
-  Image dirtText = LoadImage ("dirt.png");
-  ImageResize (&dirtText, dirtText.width * 0.0625, dirtText.height * 0.0625);
+  const Texture2D tx = GetTexture ("DIRT");
+  const Texture2D grass = GetTexture ("GRASS");
+  const Model plane = GetModel ("DIRT");
+  const Model grassPlane = GetModel ("GRASS");
 
-  Image grassText = LoadImage ("grass.png");
-  ImageResize (&grassText, grassText.width * 0.0625, grassText.height * 0.0625);
-
-  Texture2D tx = LoadTextureFromImage (dirtText);
-  Texture2D grass = LoadTextureFromImage (grassText);
-  // unsigned i = 0;
-  Model plane = LoadModelFromMesh (GenMeshPlane (1.0f, 1.0f, 1, 1));
-  Model grassPlane = LoadModelFromMesh (GenMeshPlane (
-    1.0f, 1.0f, 1, 1)); // needed because meshes are pointers in models
   for (auto& [_, b] : blocks)
   {
     Vector3 pos = b.position;
@@ -257,8 +251,8 @@ SetAndDetermineRender2 (std::unordered_map<std::string, Block>& blocks)
 
 void
 EnableFace (Face& face,
-            Model& model,
-            Texture& tx,
+            const Model& model,
+            const Texture& tx,
             Vector3 pos,
             Vector3 rot,
             float angle)
@@ -278,18 +272,10 @@ DetermineRerender (std::unordered_map<std::string, Block>& blocks,
 {
   Vector3 bPos = target.position;
 
-  Image dirtText = LoadImage ("dirt.png");
-  ImageResize (&dirtText, dirtText.width * 0.0625, dirtText.height * 0.0625);
-
-  Image grassText = LoadImage ("grass.png");
-  ImageResize (&grassText, grassText.width * 0.0625, grassText.height * 0.0625);
-
-  Texture2D tx = LoadTextureFromImage (dirtText);
-  Texture2D grass = LoadTextureFromImage (grassText);
-
-  Model plane = LoadModelFromMesh (GenMeshPlane (1.0f, 1.0f, 1, 1));
-  Model grassPlane = LoadModelFromMesh (GenMeshPlane (
-    1.0f, 1.0f, 1, 1)); // needed because meshes are pointers in models
+  const Texture2D tx = GetTexture ("DIRT");
+  const Texture2D grass = GetTexture ("GRASS");
+  const Model plane = GetModel ("DIRT");
+  const Model grassPlane = GetModel ("GRASS");
 
   if (dest)
   {
