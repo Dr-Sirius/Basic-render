@@ -57,6 +57,7 @@ struct Block
   void
   DrawBlock ()
   {
+
     if (render)
     {
       topFace.DrawFace ();
@@ -267,10 +268,9 @@ EnableFace (Face& face,
 
 void
 DetermineRerender (std::unordered_map<std::string, Block>& blocks,
-                   Block& target,
+                   Vector3 bPos,
                    bool dest = true)
 {
-  Vector3 bPos = target.position;
 
   const Texture2D tx = GetTexture ("DIRT");
   const Texture2D grass = GetTexture ("GRASS");
@@ -350,6 +350,7 @@ DetermineRerender (std::unordered_map<std::string, Block>& blocks,
   }
   else
   {
+    Block& target = getBlock (bPos, blocks);
     if (getBlockType ({ bPos.x, bPos.y + 1, bPos.z }, blocks) !=
         BLOCK_TYPE::AIR)
     {
@@ -453,43 +454,6 @@ DetermineRerender (std::unordered_map<std::string, Block>& blocks,
   }
 }
 
-std::vector<Block>*
-Build (Image noise)
-{
-  std::vector<Block>* ents = new std::vector<Block> (16384);
-
-  Color* pixel = LoadImageColors (noise);
-
-  int height = noise.height;
-  int width = noise.width;
-
-  for (int x = 0; x < width; ++x)
-  {
-    for (int z = 0; z < height; ++z)
-    {
-      float normalizedHeight = GetGrayScale (pixel[z * width + x]);
-      int yHeight = lround (normalizedHeight * 0.001f);
-      println ("Y SIZE {}", yHeight);
-      for (int y = 0; y < yHeight; ++y)
-      {
-
-        Block en =
-          Block { .topFace = { 0 },
-                  .bottomFace = { 0 },
-                  .frontFace = { 0 },
-                  .backFace = { 0 },
-                  .rightFace = { 0 },
-                  .leftFace = { 0 },
-                  .position = Vector3 { (float) x, (float) y, (float) z },
-                  .type = BLOCK_TYPE::GROUND };
-
-        // en.model.materials->maps[MATERIAL_MAP_DIFFUSE].texture = tx;
-        (*ents)[PointToIndex (en.position)] = en;
-      }
-    }
-  }
-  return ents;
-}
 /*
 Builds block terrain from the given noise and returns an unordered map of blocks
 
@@ -513,7 +477,7 @@ Build2 (Image noise)
     for (int z = 0; z < height; ++z)
     {
       float normalizedHeight = GetGrayScale (pixel[z * width + x]);
-      int yHeight = lround (normalizedHeight * 0.03f);
+      int yHeight = lround (normalizedHeight * 0.1f);
       // println ("Y SIZE {}", yHeight);
       for (int y = 0; y < yHeight; ++y)
       {

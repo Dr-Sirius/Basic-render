@@ -77,7 +77,7 @@ main ()
       Ray ray = GetMouseRay (cent, player->camera);
       DrawRay (ray, RED);
 
-      RayCollision coll = CheckCol (ents, ray);
+      RayCollision coll = CheckCol (ents, ray, true);
 
       if (coll.hit)
       {
@@ -89,13 +89,14 @@ main ()
         {
           if (ents.contains (Vector3String (coll.point)))
           {
-            ents[Vector3String (coll.point)].type = BLOCK_TYPE::AIR;
-            ents[Vector3String (coll.point)].render = false;
-            DetermineRerender (ents, getBlock (coll.point, ents));
+            ents.erase (Vector3String (coll.point));
+            // ents[Vector3String (coll.point)].type = BLOCK_TYPE::AIR;
+            // ents[Vector3String (coll.point)].render = false;
+            DetermineRerender (ents, coll.point);
             println ("dest");
           }
         }
-        if (IsMouseButtonPressed (MOUSE_BUTTON_RIGHT))
+        if (IsMouseButtonDown (MOUSE_BUTTON_RIGHT))
         {
 
           Vector3 nBlock = Vector3Add (coll.point, coll.normal);
@@ -118,16 +119,13 @@ main ()
                                    .position = nBlock,
                                    .type = BLOCK_TYPE::GROUND } });
           }
-          DetermineRerender (ents, getBlock (nBlock, ents), false);
+          DetermineRerender (ents, nBlock, false);
           println ("create NORM {}", nPos);
         }
       }
 
       EndMode3D ();
     }
-
-    DrawText (
-      std::format ("FPS:{}", GetFPS ()).c_str (), 0.0f, 45.0f, 15, WHITE);
 
     DrawTexture (noiseTex, GetScreenWidth () - noiseTex.width, 0, WHITE);
 
@@ -138,7 +136,16 @@ main ()
     DrawVector3 (player->camera.position, { 0.0f, 30.0f }, "Camera Pos");
 
     DrawText (
+      std::format ("FPS:{}", GetFPS ()).c_str (), 0.0f, 45.0f, 15, WHITE);
+
+    DrawText (
       std::format ("Refresh:{}", refresh).c_str (), 0.0f, 60.0f, 15, WHITE);
+
+    DrawText (std::format ("Block #:{}", ents.size ()).c_str (),
+              0.0f,
+              75.0f,
+              15,
+              WHITE);
 
     DrawCircle (cent.x, cent.y, 1.0f, WHITE);
 
