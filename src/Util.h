@@ -1,8 +1,8 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include <print>
 #include <raylib.h>
+#include <print>
 #include <string>
 
 /*
@@ -10,10 +10,8 @@ Returns string representation of Vector3 vec
 
 vec = {x=20.0f,y=-2.0f,z=5.02478f} returns "(20.00,-2.00,5.02)"
 */
-std::string
-Vector3String (Vector3 vec)
-{
-  return std::format ("({:.2f},{:.2f},{:.2f})", vec.x, vec.y, vec.z);
+std::string Vector3String(Vector3 vec) {
+  return std::format("({:.2f},{:.2f},{:.2f})", vec.x, vec.y, vec.z);
 }
 
 /*
@@ -26,35 +24,23 @@ A call of DrawVector3({x=20.0f,y=-2.0f,z=5.02478f}, {x=0.0,y=0.0},
 vector (20.00,-2.00,5.02)
 
 */
-void
-DrawVector3 (Vector3 vec, Vector2 pos, std::string name)
-{
-  std::string str = name + " " + Vector3String (vec);
-  DrawText (str.c_str (), pos.x, pos.y, 15, WHITE);
+void DrawVector3(Vector3 vec, Vector2 pos, std::string name) {
+  std::string str = name + " " + Vector3String(vec);
+  DrawText(str.c_str(), pos.x, pos.y, 15, WHITE);
 }
 
-float
-GetGrayScale (Color color)
-{
-  return (color.r + color.g + color.b) / 3.0f;
+float GetGrayScale(Color color) {
+  return (color.r + color.g + color.b) * 0.333f;
 }
 
-int
-PointToIndex (Vector3 vec)
-{
-  return vec.x + vec.z * 32 + vec.y * 32 * 32;
+int PointToIndex(Vector3 vec) { return vec.x + vec.z * 32 + vec.y * 32 * 32; }
+
+Vector3 Vector3Floor(Vector3 vec) {
+  return {floor(vec.x), floor(vec.y), floor(vec.z)};
 }
 
-Vector3
-Vector3Floor (Vector3 vec)
-{
-  return { floor (vec.x), floor (vec.y), floor (vec.z) };
-}
-
-Vector3
-Vector3Ceil (Vector3 vec)
-{
-  return { ceil (vec.x), ceil (vec.y), ceil (vec.z) };
+Vector3 Vector3Ceil(Vector3 vec) {
+  return {ceil(vec.x), ceil(vec.y), ceil(vec.z)};
 }
 
 #endif

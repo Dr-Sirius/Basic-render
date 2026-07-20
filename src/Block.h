@@ -26,14 +26,13 @@ struct Face {
   float angle;
   bool render;
   void DrawFace() {
-    if (render)
+    if (render) {
       DrawModelEx(model, position, rotation, angle, Vector3One(), WHITE);
+    }
   }
 };
 
 struct Block {
-  // Mesh block;
-  // Model model;
   Face topFace;
   Face bottomFace;
   Face frontFace;
@@ -50,7 +49,13 @@ struct Block {
   Color colliderCol = RED;
 
   void DrawBlock() {
-    if (render) {
+    Vector2 screenSpace = GetWorldToScreen(position, *playerCamera);
+    if ((screenSpace.x > ScreenWidth * 1.5f ||
+         screenSpace.x < -ScreenWidth * 1.5f) &&
+        (screenSpace.y > ScreenHeight * 1.5f ||
+         screenSpace.y < -ScreenHeight * 1.5f))
+      return;
+    if (render || type != BLOCK_TYPE::AIR) {
       topFace.DrawFace();
       bottomFace.DrawFace();
       frontFace.DrawFace();

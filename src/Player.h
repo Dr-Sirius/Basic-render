@@ -1,7 +1,6 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "Entity.h"
 #include "Globals.h"
 
 #include <raylib.h>
@@ -28,6 +27,7 @@ class Player {
                       .up = Vector3{0.0f, 1.0f, 0.0f},
                       .fovy = 90.0f,
                       .projection = CAMERA_PERSPECTIVE};
+    playerCamera = &camera;
 
     pitch = -0.6;  // mouseDelta y
     yaw = -2.45;   // mouseDelta x
