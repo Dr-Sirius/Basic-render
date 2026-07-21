@@ -1,5 +1,6 @@
 #include <print>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "raylib.h"
@@ -23,6 +24,7 @@ int main() {
   HideCursor();
   DisableCursor();
 
+
   Image noise = GenImagePerlinNoise(32, 32, 0.0, 0.0, 1.0f);
   Texture2D noiseTex = LoadTextureFromImage(noise);
 
@@ -35,20 +37,22 @@ int main() {
 
   Player* player = new Player(Vector3{10.0f, 2.0f, 10.0f}, ents);
 
-  // SetTargetFPS (60);
-
-  Model test = LoadModelFromMesh(GenMeshCube(2.0f, 2.0f, 2.0f));
-
-  // game loop
   Vector2 cent = {GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f};
 
-  while (!WindowShouldClose()) {
-    ScreenHeight = GetScreenHeight();
+  ScreenHeight = GetScreenHeight();
     ScreenWidth = GetScreenWidth();
 
-    player->update();
+  while (!WindowShouldClose()) {
+    if (IsWindowResized()) {
+      ScreenHeight = GetScreenHeight();
+    ScreenWidth = GetScreenWidth();
+    }
+
+    std::thread playerThread(&Player::update, player);
 
     for (auto& [pos, e] : ents) { e.Update(); }
+
+    if (playerThread.joinable()) playerThread.detach();
 
     BeginDrawing();
 
@@ -60,43 +64,15 @@ int main() {
 
       for (auto& [pos, e] : ents) { e.DrawBlock(); }
 
-      Ray ray = GetScreenToWorldRay(cent, player->camera);
-      DrawRay(ray, RED);
+      std::thread collThread([&cent, &player, &ents]() {
+        Ray ray = GetScreenToWorldRay(cent, player->camera);
 
-      RayCollision coll = CheckCol(ents, ray, true);
+        RayCollision coll = CheckCol(ents, ray, true);
 
-      if (coll.hit) {
-        Vector3 bpos = coll.point;
-        Vector3 min = {bpos.x - 0.5f, bpos.y - 0.5f, bpos.z - 0.5f};
-        Vector3 max = {min.x + 1.0f, min.y + 1.0f, min.z + 1.0f};
-        DrawBoundingBox({min, max}, WHITE);
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-          if (ents.contains(Vector3String(coll.point))) {
-            ents.erase(Vector3String(coll.point));
+        HandleBlockColl(ray, coll, ents);
+      });
 
-            DetermineRerender(ents, coll.point);
-          }
-        }
-        if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
-          Vector3 nBlock = Vector3Add(coll.point, coll.normal);
-          nBlock = Vector3Floor(nBlock);
-          std::string nPos = Vector3String(nBlock);
-
-          if (ents.contains(nPos)) {
-            ents[nPos].type = BLOCK_TYPE::GROUND;
-          } else {
-            ents.insert({nPos, Block{.topFace = {0},
-                                     .bottomFace = {0},
-                                     .frontFace = {0},
-                                     .backFace = {0},
-                                     .rightFace = {0},
-                                     .leftFace = {0},
-                                     .position = nBlock,
-                                     .type = BLOCK_TYPE::GROUND}});
-          }
-          DetermineRerender(ents, nBlock, false);
-        }
-      }
+      if (collThread.joinable()) collThread.join();
 
       EndMode3D();
     }
@@ -121,12 +97,15 @@ int main() {
 
     EndDrawing();
 
-    ++refresh;
-    if (refresh > 65536) {
-      SetAndDetermineRender2(ents);
-      println("REFRESH");
-      refresh = 0;
-    }
+    std::thread refreshThread([&ents]() {
+      ++refresh;
+      if (refresh > 65536) {
+        SetAndDetermineRender2(ents);
+        println("REFRESH");
+        refresh = 0;
+      }
+    });
+    if (refreshThread.joinable()) {refreshThread.detach();}
   }
   UnloadImage(noise);
   UnloadTexture(noiseTex);

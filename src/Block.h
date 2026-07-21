@@ -50,10 +50,10 @@ struct Block {
 
   void DrawBlock() {
     Vector2 screenSpace = GetWorldToScreen(position, *playerCamera);
-    if ((screenSpace.x > ScreenWidth * 1.5f ||
-         screenSpace.x < -ScreenWidth * 1.5f) &&
-        (screenSpace.y > ScreenHeight * 1.5f ||
-         screenSpace.y < -ScreenHeight * 1.5f))
+    if ((screenSpace.x > ScreenWidth * 1.2f ||
+         screenSpace.x < -ScreenWidth * 1.2f) &&
+        (screenSpace.y > ScreenHeight * 1.2f ||
+         screenSpace.y < -ScreenHeight * 1.2f))
       return;
     if (render || type != BLOCK_TYPE::AIR) {
       topFace.DrawFace();
@@ -113,6 +113,7 @@ std::string blockString(BLOCK_TYPE block) {
       break;
   }
 }
+
 
 // Enables the given face's rendering with given parameters
 void EnableFace(Face& face, const Model& model, const Texture& tx, Vector3 pos,
@@ -326,6 +327,42 @@ void DetermineRerender(std::unordered_map<std::string, Block>& blocks,
     HandleCreation(blocks, bPos);
   }
 }
+
+void HandleBlockColl(Ray ray, RayCollision coll, std::unordered_map<std::string, Block>& blocks) {
+  if (coll.hit) {
+    Vector3 bpos = coll.point;
+    Vector3 min = {bpos.x - 0.5f, bpos.y - 0.5f, bpos.z - 0.5f};
+    Vector3 max = {min.x + 1.0f, min.y + 1.0f, min.z + 1.0f};
+    DrawBoundingBox({min, max}, WHITE);
+    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+      if (blocks.contains(Vector3String(coll.point))) {
+        blocks.erase(Vector3String(coll.point));
+
+        DetermineRerender(blocks, coll.point);
+      }
+    }
+    if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
+      Vector3 nBlock = Vector3Add(coll.point, coll.normal);
+      nBlock = Vector3Floor(nBlock);
+      std::string nPos = Vector3String(nBlock);
+
+      if (blocks.contains(nPos)) {
+        blocks[nPos].type = BLOCK_TYPE::GROUND;
+      } else {
+        blocks.insert({nPos, Block{.topFace = {0},
+                                 .bottomFace = {0},
+                                 .frontFace = {0},
+                                 .backFace = {0},
+                                 .rightFace = {0},
+                                 .leftFace = {0},
+                                 .position = nBlock,
+                                 .type = BLOCK_TYPE::GROUND}});
+      }
+      DetermineRerender(blocks, nBlock, false);
+    }
+  }
+}
+
 
 /*
 Builds block terrain from the given noise and returns an unordered map of blocks

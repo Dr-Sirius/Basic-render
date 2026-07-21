@@ -6,6 +6,7 @@
 #include <raylib.h>
 #include <raymath.h>
 #include <print>
+#include <thread>
 #include <vector>
 
 using std::println;
@@ -43,18 +44,20 @@ class Player {
   }
 
   void update() {
-    handleInput();
+
     if (free) {
       UpdateCamera(&camera, CAMERA_FREE);
+      handleInput();
       position = camera.position;
       return;
     }
 
-    handlePhysics();
-    Vector3 newPos = Vector3Add(position, velocity);
-    position = newPos;
-    // ray = { position, { position.x, position.y - 1.0f, position.z } };
-    handleCamera();
+    std::thread handleThreads[3] = {std::thread(&Player::handleInput,this),std::thread(&Player::handlePhysics,this),std::thread(&Player::handleCamera,this)};
+
+    for (unsigned i = 0; i < 3; ++i) {
+      handleThreads[i].join();
+    }
+
   }
 
  private:
@@ -98,6 +101,9 @@ class Player {
     else
       velocity.y = 0;
     if (IsKeyPressed(KEY_SPACE)) { velocity.y = 0.025f; }
+
+    Vector3 newPos = Vector3Add(position, velocity);
+    position = newPos;
   }
 
   void handleCamera() {
